@@ -1,0 +1,1 @@
+The PS4000 uses a different kernel driver depending on architecture. For x86 use picopp, which can be found in the picopp folder. For amd64 use winusb, which can be found in the winusb folder. 
