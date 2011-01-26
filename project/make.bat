@@ -1,1 +1,1 @@
-mingw32-make -f Makefile.mingw %*
+mingw32-make -f Makefile.mingw OS=windows %*
