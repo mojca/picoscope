@@ -5,7 +5,12 @@
 #include <string>
 #include "picoStatus.h"
 
-enum PICOSCOPE_STATE {OPEN, CLOSED};
+enum PICOSCOPE_STATE  {OPEN, CLOSED};
+
+typedef enum picoscopeSeries {
+	PICO_4000,
+	PICO_6000
+} PICO_SERIES;
 
 #define PICOSCOPE_N_CHANNELS 4
 
@@ -19,12 +24,14 @@ void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 
 class Picoscope {
 public:
-	Picoscope();
+	Picoscope(PICO_SERIES);
 	~Picoscope();
 
 	PICO_STATUS Open();
 	PICO_STATUS Close();
-	bool is_ready() const;
+	bool        isReady()  const { return var_is_ready; };
+	PICO_SERIES getSeries() const { return series; };
+
 	void EnableChannels(bool a, bool b, bool c, bool d);
 
 	// void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter);
@@ -36,9 +43,9 @@ public:
 
 	class Channel {
 	public:
-		void Enable()    { is_enabled = true;  }
-		void Disable()   { is_enabled = false; }
-		bool IsEnabled() { return is_enabled; }
+		void Enable()           { is_enabled = true;  }
+		void Disable()          { is_enabled = false; }
+		bool IsEnabled()        { return is_enabled;  }
 	private:
 		bool is_enabled;
 	};
@@ -65,6 +72,7 @@ public:
 	};
 
 private:
+	PICO_SERIES series;
 	// if picoscope is open or not (for book-keeping; not really needed)
 	bool var_is_open;
 	// 
@@ -79,6 +87,16 @@ private:
 	short handle;
 	Channel channels[PICOSCOPE_N_CHANNELS];
 	short *data[PICOSCOPE_N_CHANNELS];
+};
+
+class Picoscope4000 : public Picoscope {
+public:
+	Picoscope4000() : Picoscope(PICO_4000) {};
+};
+
+class Picoscope6000 : public Picoscope {
+public:
+	Picoscope6000() : Picoscope(PICO_6000) {};
 };
 
 #endif
