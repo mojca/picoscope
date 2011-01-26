@@ -5,7 +5,7 @@
  * Author:      MAS
  * Description:
  *
- * This header defines the interface to driver routines for the 
+ * This header defines the interface to driver routines for the
  *	PicoScope6000 range of PC Oscilloscopes.
  *
  ****************************************************************************/
@@ -15,16 +15,16 @@
 #include "picoStatus.h"
 
 #ifdef PREF0
-  #undef PREF0
+	#undef PREF0
 #endif
 #ifdef PREF1
-  #undef PREF1
+	#undef PREF1
 #endif
 #ifdef PREF2
-  #undef PREF2
+	#undef PREF2
 #endif
 #ifdef PREF3
-  #undef PREF3
+	#undef PREF3
 #endif
 
 #ifdef __cplusplus
@@ -37,17 +37,17 @@
 /*	If you are dynamically linking PS6000.DLL into your project #define DYNLINK here
  */
 #ifdef DYNLINK
-  #define PREF1 typedef
+	#define PREF1 typedef
 	#define PREF2
 	#define PREF3(x) (__stdcall *x)
 #else
-  #define PREF1
+	#define PREF1
 	#ifdef _USRDLL
 		#define PREF2 __declspec(dllexport) __stdcall
 	#else
 		#define PREF2 __declspec(dllimport) __stdcall
 	#endif
-  #define PREF3(x) x
+	#define PREF3(x) x
 #endif
 	#define PREF4 __stdcall
 #else
@@ -81,24 +81,24 @@
  *
  * The maximum and minimum values returned are therefore as follows:
  */
-#define PS6000_MAX_VALUE 32512
+#define PS6000_MAX_VALUE  32512
 #define PS6000_MIN_VALUE -32512
 
 #define MAX_PULSE_WIDTH_QUALIFIER_COUNT 16777215L
 
-#define MAX_SIG_GEN_BUFFER_SIZE 16384
-#define MIN_SIG_GEN_BUFFER_SIZE 10
-#define MIN_DWELL_COUNT				10
-#define MAX_SWEEPS_SHOTS				((1 << 30) - 1)
+//#define MAX_SIG_GEN_BUFFER_SIZE   16384
+#define MIN_SIG_GEN_BUFFER_SIZE      10
+#define MIN_DWELL_COUNT              10
+#define MAX_SWEEPS_SHOTS ((1 << 30) - 1)
 
-#define MAX_WAVEFORMS_PER_SECOND	1000000
+#define MAX_WAVEFORMS_PER_SECOND 1000000
 
-#define MAX_ANALOGUE_OFFSET_50MV_200MV	 0.500f
-#define MIN_ANALOGUE_OFFSET_50MV_200MV	-0.500f
-#define MAX_ANALOGUE_OFFSET_500MV_2V		 2.500f
-#define MIN_ANALOGUE_OFFSET_500MV_2V		-2.500f
-#define MAX_ANALOGUE_OFFSET_5V_20V			 20.f
-#define MIN_ANALOGUE_OFFSET_5V_20V			-20.f
+#define MAX_ANALOGUE_OFFSET_50MV_200MV  0.500f
+#define MIN_ANALOGUE_OFFSET_50MV_200MV -0.500f
+#define MAX_ANALOGUE_OFFSET_500MV_2V    2.500f
+#define MIN_ANALOGUE_OFFSET_500MV_2V   -2.500f
+#define MAX_ANALOGUE_OFFSET_5V_20V     20.f
+#define MIN_ANALOGUE_OFFSET_5V_20V    -20.f
 
 
 #define PS6000_MAX_ETS_CYCLES 250
@@ -114,7 +114,7 @@ typedef enum enPS6000ExternalFrequency
 	PS6000_MAX_FREQUENCIES
 } PS6000_EXTERNAL_FREQUENCY;
 
-typedef enum	enPS6000BandwidthLimiter
+typedef enum enPS6000BandwidthLimiter
 {
 	PS6000_BW_FULL,
 	PS6000_BW_20MHZ
@@ -126,11 +126,11 @@ typedef enum enPS6000Channel
 	PS6000_CHANNEL_B,
 	PS6000_CHANNEL_C,
 	PS6000_CHANNEL_D,
-	PS6000_EXTERNAL,	
+	PS6000_EXTERNAL,
 	PS6000_MAX_CHANNELS = PS6000_EXTERNAL,
 	PS6000_TRIGGER_AUX,
 	PS6000_MAX_TRIGGER_SOURCES
-}	PS6000_CHANNEL;
+} PS6000_CHANNEL;
 
 typedef enum enPS6000ChannelBufferIndex
 {
@@ -160,7 +160,7 @@ typedef enum enPS6000Range
 	PS6000_20V,
 	PS6000_50V,
 	PS6000_MAX_RANGES
-}	PS6000_RANGE;
+} PS6000_RANGE;
 
 
 typedef enum enPS6000Coupling
@@ -171,23 +171,23 @@ typedef enum enPS6000Coupling
 } PS6000_COUPLING;
 
 typedef enum enPS6000EtsMode
-  {
-  PS6000_ETS_OFF,             // ETS disabled
-  PS6000_ETS_FAST,            // Return ready as soon as requested no of interleaves is available
-  PS6000_ETS_SLOW,            // Return ready every time a new set of no_of_cycles is collected
-  PS6000_ETS_MODES_MAX
-  }	PS6000_ETS_MODE;
+{
+	PS6000_ETS_OFF,             // ETS disabled
+	PS6000_ETS_FAST,            // Return ready as soon as requested no of interleaves is available
+	PS6000_ETS_SLOW,            // Return ready every time a new set of no_of_cycles is collected
+	PS6000_ETS_MODES_MAX
+} PS6000_ETS_MODE;
 
 typedef enum enPS6000TimeUnits
-  {
-  PS6000_FS,
-  PS6000_PS,
-  PS6000_NS,
-  PS6000_US,
-  PS6000_MS,
-  PS6000_S,
-  PS6000_MAX_TIME_UNITS,
-  }	PS6000_TIME_UNITS;
+{
+	PS6000_FS,
+	PS6000_PS,
+	PS6000_NS,
+	PS6000_US,
+	PS6000_MS,
+	PS6000_S,
+	PS6000_MAX_TIME_UNITS,
+} PS6000_TIME_UNITS;
 
 typedef enum enPS6000SweepType
 {
@@ -216,18 +216,18 @@ typedef enum enPS6000ExtraOperations
 {
 	PS6000_ES_OFF,
 	PS6000_WHITENOISE,
-	PS6000_PRBS // Pseudo-Random Bit Stream 
+	PS6000_PRBS // Pseudo-Random Bit Stream
 } PS6000_EXTRA_OPERATIONS;
 
-#define PS6000_PRBS_MAX_FREQUENCY				20000000.f
-#define PS6000_SINE_MAX_FREQUENCY				20000000.f
-#define PS6000_SQUARE_MAX_FREQUENCY			20000000.f
-#define PS6000_TRIANGLE_MAX_FREQUENCY		20000000.f
-#define PS6000_SINC_MAX_FREQUENCY				20000000.f
-#define PS6000_RAMP_MAX_FREQUENCY				20000000.f
-#define PS6000_HALF_SINE_MAX_FREQUENCY	20000000.f
-#define PS6000_GAUSSIAN_MAX_FREQUENCY		20000000.f
-#define PS6000_MIN_FREQUENCY									 0.03f
+#define PS6000_PRBS_MAX_FREQUENCY      20000000.f
+#define PS6000_SINE_MAX_FREQUENCY      20000000.f
+#define PS6000_SQUARE_MAX_FREQUENCY    20000000.f
+#define PS6000_TRIANGLE_MAX_FREQUENCY  20000000.f
+#define PS6000_SINC_MAX_FREQUENCY      20000000.f
+#define PS6000_RAMP_MAX_FREQUENCY      20000000.f
+#define PS6000_HALF_SINE_MAX_FREQUENCY 20000000.f
+#define PS6000_GAUSSIAN_MAX_FREQUENCY  20000000.f
+#define PS6000_MIN_FREQUENCY                  0.03f
 
 typedef enum enPS6000SigGenTrigType
 {
@@ -263,46 +263,46 @@ typedef enum enPS6000ThresholdMode
 
 typedef enum enPS6000ThresholdDirection
 {
-	PS6000_ABOVE, //using upper threshold
-	PS6000_BELOW, 
-	PS6000_RISING, // using upper threshold
-	PS6000_FALLING, // using upper threshold
-	PS6000_RISING_OR_FALLING, // using both threshold
-	PS6000_ABOVE_LOWER, // using lower threshold
-	PS6000_BELOW_LOWER, // using lower threshold
-	PS6000_RISING_LOWER,			 // using upper threshold
-	PS6000_FALLING_LOWER,		 // using upper threshold
+	PS6000_ABOVE,             // using upper threshold
+	PS6000_BELOW,
+	PS6000_RISING,            // using upper threshold
+	PS6000_FALLING,           // using upper threshold
+	PS6000_RISING_OR_FALLING, // using both  threshold
+	PS6000_ABOVE_LOWER,       // using lower threshold
+	PS6000_BELOW_LOWER,       // using lower threshold
+	PS6000_RISING_LOWER,      // using upper threshold
+	PS6000_FALLING_LOWER,     // using upper threshold
 
 	// Windowing using both thresholds
-	PS6000_INSIDE = PS6000_ABOVE, 
+	PS6000_INSIDE = PS6000_ABOVE,
 	PS6000_OUTSIDE = PS6000_BELOW,
-	PS6000_ENTER = PS6000_RISING, 
-	PS6000_EXIT = PS6000_FALLING, 
+	PS6000_ENTER = PS6000_RISING,
+	PS6000_EXIT = PS6000_FALLING,
 	PS6000_ENTER_OR_EXIT = PS6000_RISING_OR_FALLING,
 	PS6000_POSITIVE_RUNT = 9,
-  PS6000_NEGATIVE_RUNT,
+	PS6000_NEGATIVE_RUNT,
 
 	// no trigger set
-	PS6000_NONE = PS6000_RISING 
+	PS6000_NONE = PS6000_RISING
 } PS6000_THRESHOLD_DIRECTION;
 
 typedef enum enPS6000TriggerState
 {
-  PS6000_CONDITION_DONT_CARE,
-  PS6000_CONDITION_TRUE,
-  PS6000_CONDITION_FALSE,
+	PS6000_CONDITION_DONT_CARE,
+	PS6000_CONDITION_TRUE,
+	PS6000_CONDITION_FALSE,
 	PS6000_CONDITION_MAX
 } PS6000_TRIGGER_STATE;
-	
+
 #pragma pack(1)
 typedef struct tPS6000TriggerConditions
 {
-  PS6000_TRIGGER_STATE channelA;
-  PS6000_TRIGGER_STATE channelB;
-  PS6000_TRIGGER_STATE channelC;
-  PS6000_TRIGGER_STATE channelD;
-  PS6000_TRIGGER_STATE external;
-  PS6000_TRIGGER_STATE aux;
+	PS6000_TRIGGER_STATE channelA;
+	PS6000_TRIGGER_STATE channelB;
+	PS6000_TRIGGER_STATE channelC;
+	PS6000_TRIGGER_STATE channelD;
+	PS6000_TRIGGER_STATE external;
+	PS6000_TRIGGER_STATE aux;
 	PS6000_TRIGGER_STATE pulseWidthQualifier;
 } PS6000_TRIGGER_CONDITIONS;
 #pragma pack()
@@ -310,12 +310,12 @@ typedef struct tPS6000TriggerConditions
 #pragma pack(1)
 typedef struct tPS6000PwqConditions
 {
-  PS6000_TRIGGER_STATE channelA;
-  PS6000_TRIGGER_STATE channelB;
-  PS6000_TRIGGER_STATE channelC;
-  PS6000_TRIGGER_STATE channelD;
-  PS6000_TRIGGER_STATE external;
-  PS6000_TRIGGER_STATE aux;
+	PS6000_TRIGGER_STATE channelA;
+	PS6000_TRIGGER_STATE channelB;
+	PS6000_TRIGGER_STATE channelC;
+	PS6000_TRIGGER_STATE channelD;
+	PS6000_TRIGGER_STATE external;
+	PS6000_TRIGGER_STATE aux;
 } PS6000_PWQ_CONDITIONS;
 #pragma pack()
 
@@ -323,19 +323,19 @@ typedef struct tPS6000PwqConditions
 #pragma pack(1)
 typedef struct tPS6000TriggerChannelProperties
 {
-  short						thresholdUpper;  
-	unsigned short	hysteresisUpper; 
-  short						thresholdLower;
-	unsigned short	hysteresisLower; 
- 
-	PS6000_CHANNEL	channel;
-  PS6000_THRESHOLD_MODE	thresholdMode;
+	short          thresholdUpper;
+	unsigned short hysteresisUpper;
+	short          thresholdLower;
+	unsigned short hysteresisLower;
+
+	PS6000_CHANNEL        channel;
+	PS6000_THRESHOLD_MODE thresholdMode;
 } PS6000_TRIGGER_CHANNEL_PROPERTIES;
 #pragma pack()
-	
+
 typedef enum enPS6000RatioMode
 {
-	PS6000_RATIO_MODE_NONE,	
+	PS6000_RATIO_MODE_NONE,
 	PS6000_RATIO_MODE_AGGREGATE = 1,
 	PS6000_RATIO_MODE_AVERAGE = 2,
 	PS6000_RATIO_MODE_DECIMATE = 4,
@@ -345,7 +345,7 @@ typedef enum enPS6000RatioMode
 typedef enum enPS6000PulseWidthType
 {
 	PS6000_PW_TYPE_NONE,
-  PS6000_PW_TYPE_LESS_THAN,
+	PS6000_PW_TYPE_LESS_THAN,
 	PS6000_PW_TYPE_GREATER_THAN,
 	PS6000_PW_TYPE_IN_RANGE,
 	PS6000_PW_TYPE_OUT_OF_RANGE
@@ -353,156 +353,156 @@ typedef enum enPS6000PulseWidthType
 
 typedef void (PREF4 *ps6000BlockReady)
 	(
-		short											handle,
-		PICO_STATUS								status,
-		void										*	pParameter
-	); 
+		short               handle,
+		PICO_STATUS         status,
+		void              * pParameter
+	);
 
 typedef void (PREF4 *ps6000StreamingReady)
 	(
-		short    									handle,
-		unsigned long							noOfSamples,
-		unsigned long							startIndex,
-		short    									overflow,
-		unsigned long							triggerAt,
-		short    									triggered,
-		short    									autoStop,
-		void										*	pParameter
-	); 
+		short               handle,
+		unsigned long       noOfSamples,
+		unsigned long       startIndex,
+		short               overflow,
+		unsigned long       triggerAt,
+		short               triggered,
+		short               autoStop,
+		void              * pParameter
+	);
 
 typedef void (PREF4 *ps6000DataReady)
 	(
-		short    									handle,
-		PICO_STATUS								status,
-		unsigned long							noOfSamples,
-		short    									overflow,
-		void										*	pParameter
-	); 
+		short               handle,
+		PICO_STATUS         status,
+		unsigned long       noOfSamples,
+		short               overflow,
+		void              * pParameter
+	);
 
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000OpenUnit) 
-  (
-	  short											* handle,
-		char											* serial
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000OpenUnit)
+	(
+		short             * handle,
+		char              * serial
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000OpenUnitAsync)
-  (
-	  short											* status,
-		char											* serial
+	(
+		short                     * status,
+		char                      * serial
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000OpenUnitProgress)
 	(
-	  short 										* handle,
-	  short 										* progressPercent,
-	  short 										* complete
-	); 
+		short                     * handle,
+		short                     * progressPercent,
+		short                     * complete
+	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetUnitInfo)
- 	(
-	  short     								  handle, 
-	  char      								* string,
-	  short     								  stringLength,
-	  short     								* requiredSize,
-	  PICO_INFO 								  info
+	(
+		short                       handle,
+		char                      * string,
+		short                       stringLength,
+		short                     * requiredSize,
+		PICO_INFO                   info
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000FlashLed)
 	(
-	  short 											handle,
-		short 											start
+		short                       handle,
+		short                       start
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000CloseUnit)
 	(
-	  short												handle
+		short                       handle
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000MemorySegments)
 	(
-	  short												handle,
-		unsigned long								nSegments,
-		unsigned long							* nMaxSamples
+		short                       handle,
+		unsigned long               nSegments,
+		unsigned long             * nMaxSamples
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetChannel)
- 	(
-	  short												handle,
-		PS6000_CHANNEL							channel,
-	  short												enabled,
-		PS6000_COUPLING							type, 
-		PS6000_RANGE								range,
-		float												analogueOffset,
-		PS6000_BANDWIDTH_LIMITER		bandwidth
+	(
+		short                       handle,
+		PS6000_CHANNEL              channel,
+		short                       enabled,
+		PS6000_COUPLING             type,
+		PS6000_RANGE                range,
+		float                       analogueOffset,
+		PS6000_BANDWIDTH_LIMITER    bandwidth
 	);
 
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetTimebase)
 	(
-	   short											handle,
-	   unsigned long							timebase,
-	   unsigned long							noSamples,
-	   long											* timeIntervalNanoseconds,
-	   short											oversample,
-		 unsigned long						* maxSamples,
-		 unsigned long							segmentIndex
+		short                     handle,
+		unsigned long             timebase,
+		unsigned long             noSamples,
+		long                    * timeIntervalNanoseconds,
+		short                     oversample,
+		unsigned long           * maxSamples,
+		unsigned long             segmentIndex
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetTimebase2)
-	(
-	   short											handle,
-	   unsigned long							timebase,
-	   unsigned long							noSamples,
-	   float										* timeIntervalNanoseconds,
-	   short											oversample,
-		 unsigned long						* maxSamples,
-		 unsigned long							segmentIndex
+	( 
+		short                     handle,
+		unsigned long             timebase,
+		unsigned long             noSamples,
+		float                   * timeIntervalNanoseconds,
+		short                     oversample,
+		unsigned long           * maxSamples,
+		unsigned long             segmentIndex
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetSigGenArbitrary)
-	(
-	 	short												handle,
-	 	long												offsetVoltage,
-	 	unsigned long								pkToPk,
-	 	unsigned long								startDeltaPhase,
-	 	unsigned long								stopDeltaPhase,
-	 	unsigned long								deltaPhaseIncrement, 
-	 	unsigned long								dwellCount,
-	 	short											*	arbitraryWaveform, 
-	 	long												arbitraryWaveformSize,
-		PS6000_SWEEP_TYPE						sweepType,
-		PS6000_EXTRA_OPERATIONS			operation,
-		PS6000_INDEX_MODE						indexMode,
-		unsigned long								shots,
-		unsigned long								sweeps,
-		PS6000_SIGGEN_TRIG_TYPE			triggerType,
-		PS6000_SIGGEN_TRIG_SOURCE		triggerSource,
-		short												extInThreshold
+	( 
+		short                       handle,
+		long                        offsetVoltage,
+		unsigned long               pkToPk,
+		unsigned long               startDeltaPhase,
+		unsigned long               stopDeltaPhase,
+		unsigned long               deltaPhaseIncrement,
+		unsigned long               dwellCount,
+		short                     * arbitraryWaveform,
+		long                        arbitraryWaveformSize,
+		PS6000_SWEEP_TYPE           sweepType,
+		PS6000_EXTRA_OPERATIONS     operation,
+		PS6000_INDEX_MODE           indexMode,
+		unsigned long               shots,
+		unsigned long               sweeps,
+		PS6000_SIGGEN_TRIG_TYPE     triggerType,
+		PS6000_SIGGEN_TRIG_SOURCE   triggerSource,
+		short                       extInThreshold
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3(ps6000SetSigGenBuiltIn)
-	(
-		short												handle,
-		long												offsetVoltage,
-		unsigned long								pkToPk,
-		short												waveType,
-		float												startFrequency,
-		float												stopFrequency,
-		float												increment,
-		float												dwellTime,
-		PS6000_SWEEP_TYPE						sweepType,
-		PS6000_EXTRA_OPERATIONS			operation,
-		unsigned long								shots,
-		unsigned long								sweeps,
-		PS6000_SIGGEN_TRIG_TYPE			triggerType,
-		PS6000_SIGGEN_TRIG_SOURCE		triggerSource,
-		short												extInThreshold
-		);
+	( 
+		short                      handle,
+		long                       offsetVoltage,
+		unsigned long              pkToPk,
+		short                      waveType,
+		float                      startFrequency,
+		float                      stopFrequency,
+		float                      increment,
+		float                      dwellTime,
+		PS6000_SWEEP_TYPE          sweepType,
+		PS6000_EXTRA_OPERATIONS    operation,
+		unsigned long              shots,
+		unsigned long              sweeps,
+		PS6000_SIGGEN_TRIG_TYPE    triggerType,
+		PS6000_SIGGEN_TRIG_SOURCE  triggerSource,
+		short                      extInThreshold
+	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SigGenSoftwareControl)
 	(
-		short												handle,
-		short												state
+		short                       handle,
+		short                       state
 	);
 
 
@@ -518,321 +518,321 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetSimpleTrigger)
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetEts)
-  (
-		short												handle,
-		PS6000_ETS_MODE							mode,
-		short												etsCycles,
-		short												etsInterleave,
-		long											* sampleTimePicoseconds
+	(
+		short                       handle,
+		PS6000_ETS_MODE             mode,
+		short                       etsCycles,
+		short                       etsInterleave,
+		long                      * sampleTimePicoseconds
 	);
-
-
+    
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetTriggerChannelProperties)
-	(
-		short																handle,
-		PS6000_TRIGGER_CHANNEL_PROPERTIES *	channelProperties,
-		short																nChannelProperties,
-		short																auxOutputEnable,
-		long																autoTriggerMilliseconds
+	( 
+		short                               handle,
+		PS6000_TRIGGER_CHANNEL_PROPERTIES * channelProperties,
+		short                               nChannelProperties,
+		short                               auxOutputEnable,
+		long                                autoTriggerMilliseconds
 	);
-
-
+    
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetTriggerChannelConditions)
-	(
-		short												handle,
-		PS6000_TRIGGER_CONDITIONS	*	conditions,
-		short												nConditions
+	( 
+		short                       handle,
+		PS6000_TRIGGER_CONDITIONS * conditions,
+		short                       nConditions
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetTriggerChannelDirections)
-	(	
-		short													handle,
-		PS6000_THRESHOLD_DIRECTION		channelA,
-		PS6000_THRESHOLD_DIRECTION		channelB,
-		PS6000_THRESHOLD_DIRECTION		channelC,
-		PS6000_THRESHOLD_DIRECTION		channelD,
-		PS6000_THRESHOLD_DIRECTION		ext,
-		PS6000_THRESHOLD_DIRECTION		aux
+	( 
+		short                         handle,
+		PS6000_THRESHOLD_DIRECTION    channelA,
+		PS6000_THRESHOLD_DIRECTION    channelB,
+		PS6000_THRESHOLD_DIRECTION    channelC,
+		PS6000_THRESHOLD_DIRECTION    channelD,
+		PS6000_THRESHOLD_DIRECTION    ext,
+		PS6000_THRESHOLD_DIRECTION    aux
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetTriggerDelay)
-	(
-		short									handle,
-		unsigned long					delay
+	( 
+		short                 handle,
+		unsigned long         delay
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetPulseWidthQualifier)
-	(
-		short														handle,
-		PS6000_PWQ_CONDITIONS					*	conditions,
-		short														nConditions,
-		PS6000_THRESHOLD_DIRECTION			direction,
-		unsigned long										lower,
-		unsigned long										upper,
-		PS6000_PULSE_WIDTH_TYPE					type
+	( 
+		short                           handle,
+		PS6000_PWQ_CONDITIONS         * conditions,
+		short                           nConditions,
+		PS6000_THRESHOLD_DIRECTION      direction,
+		unsigned long                   lower,
+		unsigned long                   upper,
+		PS6000_PULSE_WIDTH_TYPE         type
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000IsTriggerOrPulseWidthQualifierEnabled)
-	(
-		short 								handle,
-		short 							* triggerEnabled,
-		short 							* pulseWidthQualifierEnabled
+	( 
+		short                 handle,
+		short               * triggerEnabled,
+		short               * pulseWidthQualifierEnabled
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetTriggerTimeOffset)
-	(
-		short									handle,
-		unsigned long 			* timeUpper,
-		unsigned long 			* timeLower,
-		PS6000_TIME_UNITS		*	timeUnits,
-		unsigned long					segmentIndex	
+	( 
+		short                 handle,
+		unsigned long       * timeUpper,
+		unsigned long       * timeLower,
+		PS6000_TIME_UNITS   * timeUnits,
+		unsigned long         segmentIndex
 	);
-
-
+    
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetTriggerTimeOffset64)
-	(
-		short									handle,
-		__int64							* time,
-		PS6000_TIME_UNITS		*	timeUnits,
-		unsigned long					segmentIndex	
+	( 
+		short                 handle,
+		__int64             * time,
+		PS6000_TIME_UNITS   * timeUnits,
+		unsigned long         segmentIndex
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesTriggerTimeOffsetBulk)
-	(
-	  short								handle,
-		unsigned long			*	timesUpper,
-		unsigned long			* timesLower,
-		PS6000_TIME_UNITS	*	timeUnits,
-		unsigned long				fromSegmentIndex,
-		unsigned long				toSegmentIndex
+	( 
+		short               handle,
+		unsigned long     * timesUpper,
+		unsigned long     * timesLower,
+		PS6000_TIME_UNITS * timeUnits,
+		unsigned long       fromSegmentIndex,
+		unsigned long       toSegmentIndex
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesTriggerTimeOffsetBulk64)
-	(
-	  short								handle,
-		__int64			*	times,
-		PS6000_TIME_UNITS	*	timeUnits,
-		unsigned long				fromSegmentIndex,
-		unsigned long				toSegmentIndex
+	( 
+		short               handle,
+		__int64     * times,
+		PS6000_TIME_UNITS * timeUnits,
+		unsigned long       fromSegmentIndex,
+		unsigned long       toSegmentIndex
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBuffers)
-(
-   short									handle,
-	 PS6000_CHANNEL 			  channel,
-	 short								* bufferMax,
-	 short								* bufferMin,
-   unsigned long					bufferLth,
-	 PS6000_RATIO_MODE			downSampleRatioMode
-);
-
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBuffer)
-(
-   short									handle,
-	 PS6000_CHANNEL 			  channel,
-	 short								* buffer,
-   unsigned long					bufferLth,
-	 PS6000_RATIO_MODE			downSampleRatioMode
-);
-
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBufferBulk)
-(
-   short									handle,
-	 PS6000_CHANNEL 			  channel,
-	 short							*		buffer,
-   unsigned long					bufferLth,
-	 unsigned long					waveform,
-	 PS6000_RATIO_MODE			downSampleRatioMode
-);
-
-
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBuffersBulk)
-(
-   short									handle,
-	 PS6000_CHANNEL 			  channel,
-	 short							*		bufferMax,
-	 short							*		bufferMin,
-   unsigned long					bufferLth,
-	 unsigned long					waveform,
-	 PS6000_RATIO_MODE			downSampleRatioMode
-);
-
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetEtsTimeBuffer)
-(
-   short									handle,
-	 __int64 *							buffer,
-	 unsigned long					bufferLth
-);
-
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetEtsTimeBuffers)
-(
-   short									handle,
-	 unsigned long				* timeUpper,
-	 unsigned long				* timeLower,
-	 unsigned long					bufferLth
-);
-
-PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000RunBlock)
-	(
-		short									handle,
-		unsigned long					noOfPreTriggerSamples,
-		unsigned long					noOfPostTriggerSamples,
-		unsigned long					timebase,
-		short									oversample,
-		long								* timeIndisposedMs,
-		unsigned long					segmentIndex,
-		ps6000BlockReady			lpReady,
-		void								* pParameter
+	( 
+		short                 handle,
+		PS6000_CHANNEL        channel,
+		short               * bufferMax,
+		short               * bufferMin,
+		unsigned long         bufferLth,
+		PS6000_RATIO_MODE     downSampleRatioMode
 	);
-
+    
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBuffer)
+	( 
+		short                 handle,
+		PS6000_CHANNEL        channel,
+		short               * buffer,
+		unsigned long         bufferLth,
+		PS6000_RATIO_MODE     downSampleRatioMode
+	);
+    
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBufferBulk)
+	( 
+		short                 handle,
+		PS6000_CHANNEL        channel,
+		short             *   buffer,
+		unsigned long         bufferLth,
+		unsigned long         waveform,
+		PS6000_RATIO_MODE     downSampleRatioMode
+	);
+    
+    
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetDataBuffersBulk)
+	( 
+		short                 handle,
+		PS6000_CHANNEL        channel,
+		short             *   bufferMax,
+		short             *   bufferMin,
+		unsigned long         bufferLth,
+		unsigned long         waveform,
+		PS6000_RATIO_MODE     downSampleRatioMode
+	);
+    
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetEtsTimeBuffer)
+	( 
+		short                 handle,
+		__int64 *             buffer,
+		unsigned long         bufferLth
+	);
+    
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetEtsTimeBuffers)
+	( 
+		short                 handle,
+		unsigned long       * timeUpper,
+		unsigned long       * timeLower,
+		unsigned long         bufferLth
+	);
+    
+PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000RunBlock)
+	( 
+		short                 handle,
+		unsigned long         noOfPreTriggerSamples,
+		unsigned long         noOfPostTriggerSamples,
+		unsigned long         timebase,
+		short                 oversample,
+		long                * timeIndisposedMs,
+		unsigned long         segmentIndex,
+		ps6000BlockReady      lpReady,
+		void                * pParameter
+	);
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000IsReady)
-	(
+	( 
 		short handle,
 		short * ready
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000RunStreaming)
-  (
-	  short									handle,
-		unsigned long				* sampleInterval,	
-		PS6000_TIME_UNITS			sampleIntervalTimeUnits,
-	  unsigned long					maxPreTriggerSamples,
-	  unsigned long					maxPostPreTriggerSamples,
-		short									autoStop,
-		unsigned long					downSampleRatio,
-		PS6000_RATIO_MODE			downSampleRatioMode,
-    unsigned long					overviewBufferSize
+	( 
+		short                 handle,
+		unsigned long       * sampleInterval,
+		PS6000_TIME_UNITS     sampleIntervalTimeUnits,
+		unsigned long         maxPreTriggerSamples,
+		unsigned long         maxPostPreTriggerSamples,
+		short                 autoStop,
+		unsigned long         downSampleRatio,
+		PS6000_RATIO_MODE     downSampleRatioMode,
+		unsigned long         overviewBufferSize
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetStreamingLatestValues)
-  (
-    short									handle, 
-    ps6000StreamingReady	lpPs6000Ready,
-		void								* pParameter
-  );  
-
+	( 
+		short                 handle,
+		ps6000StreamingReady  lpPs6000Ready,
+		void                * pParameter
+	);
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000NoOfStreamingValues)
-	(
-	  short								handle,
-		unsigned long			*	noOfValues
+	( 
+		short               handle,
+		unsigned long     * noOfValues
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetMaxDownSampleRatio)
-	(
-	  short								handle,
-		unsigned long 			noOfUnaggreatedSamples,
-		unsigned long 		* maxDownSampleRatio,
-		PS6000_RATIO_MODE		downSampleRatioMode,
-		unsigned long				segmentIndex
+	( 
+		short               handle,
+		unsigned long       noOfUnaggreatedSamples,
+		unsigned long     * maxDownSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		unsigned long       segmentIndex
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValues)
-	(
-	  short								handle,
-		unsigned long 			startIndex,
-	  unsigned long			*	noOfSamples,
-	  unsigned long				downSampleRatio,
-		PS6000_RATIO_MODE		downSampleRatioMode,
-		unsigned long				segmentIndex,
-		short							* overflow
+	( 
+		short               handle,
+		unsigned long       startIndex,
+		unsigned long     * noOfSamples,
+		unsigned long       downSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		unsigned long       segmentIndex,
+		short             * overflow
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesBulk)
-	(
-	  short								handle,
-		unsigned long 	 	*	noOfSamples,
-		unsigned long				fromSegmentIndex,
-		unsigned long				toSegmentIndex,
-	  unsigned long				downSampleRatio,
-		PS6000_RATIO_MODE 	downSampleRatioMode,
-		short							* overflow
+	( 
+		short               handle,
+		unsigned long     * noOfSamples,
+		unsigned long       fromSegmentIndex,
+		unsigned long       toSegmentIndex,
+		unsigned long       downSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		short             * overflow
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesAsync)
-	(
-	  short								handle,
-		unsigned long				startIndex,
-	  unsigned long				noOfSamples,
-	  unsigned long				downSampleRatio,
-		PS6000_RATIO_MODE 	downSampleRatioMode,
-		unsigned long				segmentIndex,
-	  void							*	lpDataReady,
-		void							*	pParameter
+	( 
+		short               handle,
+		unsigned long       startIndex,
+		unsigned long       noOfSamples,
+		unsigned long       downSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		unsigned long       segmentIndex,
+		void              * lpDataReady,
+		void              * pParameter
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesOverlapped)
-	(
-	  short								handle,
-	  unsigned long 			startIndex,
-	  unsigned long			*	noOfSamples,
-	  unsigned long				downSampleRatio,
-	  PS6000_RATIO_MODE		downSampleRatioMode,
-		unsigned long	      segmentIndex,
-	  short				*       overflow
+	( 
+		short               handle,
+		unsigned long       startIndex,
+		unsigned long     * noOfSamples,
+		unsigned long       downSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		unsigned long       segmentIndex,
+		short             * overflow
 	);
-
-
+    
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesOverlappedBulk)
-	(
-	  short								handle,
-		unsigned long				startIndex,
-  	unsigned long 	 	*	noOfSamples,
-	  unsigned long				downSampleRatio,
-	  PS6000_RATIO_MODE		downSampleRatioMode,
-	  unsigned long				fromSegmentIndex,
-	  unsigned long				toSegmentIndex,
-	  short							*	overflow
+	( 
+		short               handle,
+		unsigned long       startIndex,
+		unsigned long     * noOfSamples,
+		unsigned long       downSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		unsigned long       fromSegmentIndex,
+		unsigned long       toSegmentIndex,
+		short             * overflow
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesBulkAsyc)
-	(
-	  short								handle,
-		unsigned long				startIndex,
-	  unsigned long 		*	noOfSamples,
-	  unsigned long				downSampleRatio,
-		PS6000_RATIO_MODE		downSampleRatioMode,
-		unsigned long				fromSegmentIndex,
-		unsigned long				toSegmentIndex,
-		short							* overflow
+	( 
+		short               handle,
+		unsigned long       startIndex,
+		unsigned long     * noOfSamples,
+		unsigned long       downSampleRatio,
+		PS6000_RATIO_MODE   downSampleRatioMode,
+		unsigned long       fromSegmentIndex,
+		unsigned long       toSegmentIndex,
+		short             * overflow
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetNoOfCaptures)
-	(
-	  short								handle,
-		unsigned long			*	nCaptures
+	( 
+		short               handle,
+		unsigned long     * nCaptures
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000Stop)
-	(
-	  short handle
+	( 
+		short handle
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetNoOfCaptures) (short handle, unsigned long nCaptures);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetWaveformLimiter)
-	(
-	  short handle,
+	( 
+		short handle,
 		unsigned long nWaveformsPerSecond
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000EnumerateUnits)
-	(
-	short * count,
-	char * serials,
-	short * serialLth
+	( 
+		short * count,
+		char  * serials,
+		short * serialLth
 	);
-
-
+    
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000SetExternalClock)
-	(
-	short handle,
-	PS6000_EXTERNAL_FREQUENCY frequency,
-	short threshold
+	( 
+		short handle,
+		PS6000_EXTERNAL_FREQUENCY frequency,
+		short threshold
 	);
-
+    
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000PingUnit)
-	(
-	short handle
+	( 
+		short handle
 	);
 
 #endif
