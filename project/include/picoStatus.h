@@ -100,6 +100,21 @@ typedef unsigned long PICO_INFO;
 #define PICO_RATIO_MODE_NOT_SUPPORTED             0x00000047UL
 #define PICO_RAPID_NOT_SUPPORT_AGGREGATION        0x00000048UL
 #define PICO_INVALID_TRIGGER_PROPERTY             0x00000049UL
+// added manually
+#define PICO_INTERFACE_NOT_CONNECTED              0x0000004AUL
+#define PICO_SIGGEN_WAVEFORM_SETUP_FAILED         0x0000004DUL
+#define PICO_FPGA_FAIL                            0x0000004EUL
+#define PICO_POWER_MANAGER                        0x0000004FUL
+#define PICO_INVALID_ANALOGUE_OFFSET              0x00000050UL
+#define PICO_PLL_LOCK_FAILED                      0x00000051UL
+#define PICO_ANALOG_BOARD                         0x00000052UL
+#define PICO_CONFIG_FAIL_AWG                      0x00000053UL
+#define PICO_INITIALIZE_FPGA                      0x00000054UL
+#define PICO_EXTERNAL_FREQUENCY_INVALID           0x00000056UL
+#define PICO_CLOCK_CHANGE_ERROR                   0x00000057UL
+#define PICO_TRIGGER_AND_EXTERNAL_CLOCK_CLASH     0x00000058UL
+#define PICO_PWQ_AND_EXTERNAL_CLOCK_CLASH         0x00000059UL
+#define PICO_GET_DATA_ACTIVE                      0x00000103UL
 
 typedef unsigned long PICO_STATUS;
 
