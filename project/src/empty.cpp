@@ -2,6 +2,7 @@
 #include "windows.h"
 #include "picoscope.h"
 #include "ps4000Api.h"
+#include "ps6000Api.h"
 // #include "picoStatus.h"
 
 #include <conio.h>
@@ -16,10 +17,10 @@ int main(int argc, char** argv)
 {
 	try {
 		// short **data;
-		unsigned long length = (unsigned long)1e7;
-		length = 4200610;
+		// unsigned long length = (unsigned long)1e7;
+		// length = 4200610;
 
-		Picoscope pico;
+		Picoscope6000 pico;
 
 		cerr << "open\n";
 		pico.Open();
@@ -32,7 +33,7 @@ int main(int argc, char** argv)
 		     << ex.GetErrorMessage() << ex.GetErrorNumber() << endl
 		     << '(' << ex.GetVerboseErrorMessage() << ')' << endl;
 		try {
-			// pico.close();
+			// pico.Close();
 		} catch(...) {}
 	} catch(Picoscope::PicoscopeUserException& ex) {
 		cerr << "Some exception:" << endl
