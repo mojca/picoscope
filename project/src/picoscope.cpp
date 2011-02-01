@@ -26,9 +26,9 @@ Picoscope::Picoscope(PICO_SERIES s) {
 	// should perhaps already the constructor open the picoscope?
 	// open();
 	// make sure that all the values are initialized to NULL
-	for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
-		data[i]=NULL;
-	}
+	// for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+	// 	data[i]=NULL;
+	// }
 }
 
 // /* constructor */
@@ -46,9 +46,9 @@ Picoscope::~Picoscope() {
 	// close();
 	int i;
 	for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
-		if(data[i]!=NULL) {
-			delete [] data[i];
-		}
+		// if(data[i]!=NULL) {
+		// 	// delete [] data[i];
+		// }
 	}
 	// delete [] data; - if it was not initialized
 }
@@ -101,6 +101,7 @@ PICO_STATUS Picoscope::Close() {
 	if(handle <= 0) {
 		throw PicoscopeUserException("This should not happen. Picoscope should be open, but the handle is not valid. Please report to developers.");
 	}
+	printf("stop\n");
 
 		if(getSeries() == PICO_4000) {
 			return_status = ps4000Stop(handle);
@@ -117,20 +118,6 @@ PICO_STATUS Picoscope::Close() {
 	return return_status;
 }
 
-// TODO: improve this; check for number of channels
-void Picoscope::EnableChannels(bool a, bool b, bool c, bool d) {
-	/*if(getSeries() == PICO_4000) {
-		if(a) channels[PS4000_CHANNEL_A].Enable(); else channels[PS4000_CHANNEL_A].Disable();
-		if(b) channels[PS4000_CHANNEL_B].Enable(); else channels[PS4000_CHANNEL_B].Disable();
-		if(c) channels[PS4000_CHANNEL_C].Enable(); else channels[PS4000_CHANNEL_C].Disable();
-		if(d) channels[PS4000_CHANNEL_D].Enable(); else channels[PS4000_CHANNEL_D].Disable();
-	}*/
-	if(a) channels[0].Enable(); else channels[0].Disable();
-	if(b) channels[1].Enable(); else channels[1].Disable();
-	if(c) channels[2].Enable(); else channels[2].Disable();
-	if(d) channels[3].Enable(); else channels[3].Disable();
-}
-
 void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 {
 	// flag to say done reading data
@@ -143,53 +130,66 @@ void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 // 	var_is_ready = true;
 // }
 
-void Picoscope::DoSomething(unsigned long trace_length) {
+
+void Picoscope::MyFunction(unsigned long trace_length)
+{
 	int i;
-	/* ps4000SetChannel */
-	// handle, channel, enabled, coupling (TRUE: DC, FALSE: AC), range (for voltage; 8 = 5V)
-	for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
-		return_status = ps4000SetChannel(handle, (PS4000_CHANNEL)i, channels[i].IsEnabled(), TRUE, PS4000_5V);
-		if(return_status != PICO_OK) {
-			throw PicoscopeException(return_status);
-		}
-	}
-
-	#define PS4000_TIMEBASE_80MS 0UL
-	#define PS4000_TIMEBASE_40MS 1UL
-	#define PS4000_TIMEBASE_20MS 2UL
-	#define PS4000_TIMEBASE_12_5ns 0UL
-	#define PS4000_TIMEBASE_25ns   1UL
-	#define PS4000_TIMEBASE_50ns   2UL
-
-	#define PS4000_TIMEBASE PS4000_TIMEBASE_80MS
-	
-
-	/* ps4000GetTimebase */
-	// handle, timebase, noSomples, *timeIntevalNanoseconds (NULL), oversample, *maxSamples (NULL), segmentIndex
-	long max_samples, time_in_ms;
+	unsigned long max_samples;
+	long time_in_ms = 0;
 	int segment = 0;
-	return_status = ps4000GetTimebase(handle, PS4000_TIMEBASE, trace_length, NULL, 1, &max_samples, segment);
-	// fprintf(stderr, "max samples: %d\n", max_samples);
+
+	/* ps6000SetChannel */
+	// handle, channel, enabled, coupling (TRUE: DC, FALSE: AC), range (for voltage; 8 = 5V), analogueOffset, bandwidth
+	// for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+	// 	return_status = ps6000SetChannel(handle, (PS4000_CHANNEL)i, channels[i].IsEnabled(), TRUE, PS6000_5V, 0, PS6000_BW_FULL);
+	// 	if(return_status != PICO_OK) {
+	// 		throw PicoscopeException(return_status);
+	// 	}
+	// }
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)0, TRUE,  PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)1, FALSE, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)2, FALSE, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)3, FALSE, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
 	}
 
-	// handle, channel, short *buffer, long, buffer_length
-	for(i=0; i<4; i+=1) {
-		// TODO: check if everything was ok
-		data[i] = new short[trace_length];
-		// data[i] = new short[1000000000];
-		// std::cerr << "size of data(i):" << sizeof(data[i]) << std::endl;
-		// fprintf(stderr, "> setting data buffers\n");
-		// handle, channel, short *buffer, long buffer_length
-		return_status = ps4000SetDataBuffer(handle, (PS4000_CHANNEL)i, data[i], trace_length);
-		if(return_status != PICO_OK) {
-			throw PicoscopeException(return_status);
-		}
+	#define PS6000_TIMEBASE_5GS    0UL
+	#define PS6000_TIMEBASE_2_5GS  1UL
+	#define PS6000_TIMEBASE_1_25GS 2UL
+
+	#define PS6000_TIMEBASE_200ps  0UL
+	#define PS6000_TIMEBASE_400ps  1UL
+	#define PS6000_TIMEBASE_800ps  2UL
+
+
+	#define PS6000_TIMEBASE PS6000_TIMEBASE_5GS
+
+	printf("get timebase\n");
+	return_status = ps6000GetTimebase(handle, PS6000_TIMEBASE, trace_length, NULL, 1, &max_samples, segment);
+	printf("max samples: %lu, trace length: %lu\n", max_samples, trace_length);
+
+	if(return_status != PICO_OK) {
+		throw PicoscopeException(return_status);
 	}
+
+	// TODO: check if everything was ok
+	short *data = new short[trace_length];
+	// data[i] = new short[1000000000];
+	// std::cerr << "size of data(i):" << sizeof(data[i]) << std::endl;
+	// fprintf(stderr, "> setting data buffers\n");
+	// handle, channel, short *buffer, long buffer_length
+	printf("set data buffer (length of buffer: %ld %ld)\n", sizeof(data), sizeof(data[0]));
+	return_status = ps6000SetDataBuffer(handle, (PS6000_CHANNEL)0, data, trace_length, PS6000_RATIO_MODE_NONE);
+	if(return_status != PICO_OK) {
+		throw PicoscopeException(return_status);
+	}
+
 	var_is_ready = false;
 	global_is_ready = false;
-	return_status = ps4000RunBlock(handle, 0, trace_length, PS4000_TIMEBASE, 1, &time_in_ms, segment, CallBackBlock, NULL);
+	printf("run block\n");
+	return_status = ps6000RunBlock(handle, 0, trace_length, PS6000_TIMEBASE, 1, &time_in_ms, segment, CallBackBlock, NULL);
+	printf("time in ms: %ld\n", time_in_ms);
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
 	}
@@ -198,14 +198,87 @@ void Picoscope::DoSomething(unsigned long trace_length) {
 	}
 	unsigned long N_of_samples;
 	short overflow;
-	return_status = ps4000GetValues(handle, 0, &N_of_samples, 1, RATIO_MODE_NONE, segment, &overflow);
+	printf("get values\n");
+	N_of_samples = trace_length;
+	return_status = ps6000GetValues(handle, 0, &N_of_samples, 1, PS6000_RATIO_MODE_NONE, segment, &overflow);
+	printf("end of get values\n  number of samples: %lu\n", N_of_samples);
 	if(return_status != PICO_OK) {
+		printf("unable to get values\n");
 		throw PicoscopeException(return_status);
 	}
+	printf("write data\n");
+	FILE *g = fopen("data.txt", "wt");
+	for(i=0; i<N_of_samples; i++) {
+		fprintf(g, "%d\n", data[i]);
+	}
+	fclose(g);
+	delete [] data;
+}
+
+void Picoscope::DoSomething(unsigned long trace_length) {
+	// int i;
+	// /* ps4000SetChannel */
+	// // handle, channel, enabled, coupling (TRUE: DC, FALSE: AC), range (for voltage; 8 = 5V)
+	// for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+	// 	return_status = ps4000SetChannel(handle, (PS4000_CHANNEL)i, channels[i].IsEnabled(), TRUE, PS4000_5V);
+	// 	if(return_status != PICO_OK) {
+	// 		throw PicoscopeException(return_status);
+	// 	}
+	// }
+	// 
+	// #define PS4000_TIMEBASE_80MS 0UL
+	// #define PS4000_TIMEBASE_40MS 1UL
+	// #define PS4000_TIMEBASE_20MS 2UL
+	// #define PS4000_TIMEBASE_12_5ns 0UL
+	// #define PS4000_TIMEBASE_25ns   1UL
+	// #define PS4000_TIMEBASE_50ns   2UL
+	// 
+	// #define PS4000_TIMEBASE PS4000_TIMEBASE_80MS
+	// 
+	// 
+	// /* ps4000GetTimebase */
+	// // handle, timebase, noSomples, *timeIntevalNanoseconds (NULL), oversample, *maxSamples (NULL), segmentIndex
+	// long max_samples, time_in_ms;
+	// int segment = 0;
+	// return_status = ps4000GetTimebase(handle, PS4000_TIMEBASE, trace_length, NULL, 1, &max_samples, segment);
+	// // fprintf(stderr, "max samples: %d\n", max_samples);
+	// if(return_status != PICO_OK) {
+	// 	throw PicoscopeException(return_status);
+	// }
+	// 
+	// // handle, channel, short *buffer, long, buffer_length
+	// for(i=0; i<4; i+=1) {
+	// 	// TODO: check if everything was ok
+	// 	data[i] = new short[trace_length];
+	// 	// data[i] = new short[1000000000];
+	// 	// std::cerr << "size of data(i):" << sizeof(data[i]) << std::endl;
+	// 	// fprintf(stderr, "> setting data buffers\n");
+	// 	// handle, channel, short *buffer, long buffer_length
+	// 	return_status = ps4000SetDataBuffer(handle, (PS4000_CHANNEL)i, data[i], trace_length);
+	// 	if(return_status != PICO_OK) {
+	// 		throw PicoscopeException(return_status);
+	// 	}
+	// }
+	// var_is_ready = false;
+	// global_is_ready = false;
+	// return_status = ps4000RunBlock(handle, 0, trace_length, PS4000_TIMEBASE, 1, &time_in_ms, segment, CallBackBlock, NULL);
+	// if(return_status != PICO_OK) {
+	// 	throw PicoscopeException(return_status);
+	// }
+	// while (!global_is_ready && !_kbhit()) {
+	// 	Sleep(0);
+	// }
+	// unsigned long N_of_samples;
+	// short overflow;
+	// return_status = ps4000GetValues(handle, 0, &N_of_samples, 1, RATIO_MODE_NONE, segment, &overflow);
+	// if(return_status != PICO_OK) {
+	// 	throw PicoscopeException(return_status);
+	// }
 }
 
 short** Picoscope::GetData() {
-	return data;
+	// return data;
+	return NULL;
 }
 
 // int Picoscope::GetNumberOfHitsAboveThreshold(double value, )

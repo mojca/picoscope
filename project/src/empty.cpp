@@ -24,6 +24,7 @@ int main(int argc, char** argv)
 
 		cerr << "open\n";
 		pico.Open();
+		pico.MyFunction(400000000UL);
 		cerr << "close\n";
 		pico.Close();
 		cerr << "end\n";

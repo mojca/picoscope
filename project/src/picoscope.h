@@ -31,8 +31,7 @@ public:
 	PICO_STATUS Close();
 	bool        isReady()  const { return var_is_ready; };
 	PICO_SERIES getSeries() const { return series; };
-
-	void EnableChannels(bool a, bool b, bool c, bool d);
+	short       getHandle() const { return handle; };
 
 	// void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter);
 
@@ -40,15 +39,7 @@ public:
 	void do_something_nasty();
 	void DoSomething(unsigned long trace_length);
 	short** Picoscope::GetData();
-
-	class Channel {
-	public:
-		void Enable()           { is_enabled = true;  }
-		void Disable()          { is_enabled = false; }
-		bool IsEnabled()        { return is_enabled;  }
-	private:
-		bool is_enabled;
-	};
+	void MyFunction(unsigned long trace_length);
 
 	/* handling exceptions */
 	class PicoscopeException {
@@ -85,8 +76,6 @@ private:
 	//  0: no unit found
 	// >0: value is the handle to the open device
 	short handle;
-	Channel channels[PICOSCOPE_N_CHANNELS];
-	short *data[PICOSCOPE_N_CHANNELS];
 };
 
 class Picoscope4000 : public Picoscope {
