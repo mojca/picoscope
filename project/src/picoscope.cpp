@@ -10,15 +10,13 @@
 
 // using namespace std;
 
-// TODO
-bool global_is_ready;
-
 /* constructor */
 Picoscope::Picoscope(PICO_SERIES s) {
 	int i;
+
 	series  = series;
 	var_is_open  = false;
-	var_is_ready = false;
+	SetReady(false);
 	handle = PICOSCOPE_HANDLE_UNITIALIZED;
 	return_status = PICO_OK;
 
@@ -66,7 +64,7 @@ PICO_STATUS Picoscope::Open() {
 		return_status = PICO_OK;
 	} else {
 		// finally: open the unit
-		if(getSeries() == PICO_4000) {
+		if(GetSeries() == PICO_4000) {
 			return_status = ps4000OpenUnit(&handle);
 		} else {
 			return_status = ps6000OpenUnit(&handle, NULL);
@@ -103,7 +101,7 @@ PICO_STATUS Picoscope::Close() {
 	}
 	printf("stop\n");
 
-		if(getSeries() == PICO_4000) {
+		if(GetSeries() == PICO_4000) {
 			return_status = ps4000Stop(handle);
 		} else {
 			return_status = ps6000Stop(handle);
@@ -121,7 +119,7 @@ PICO_STATUS Picoscope::Close() {
 void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 {
 	// flag to say done reading data
-	global_is_ready = true;
+	Picoscope::SetReady(true);
 }
 
 // void CALLBACK Picoscope::CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
@@ -185,15 +183,14 @@ void Picoscope::MyFunction(unsigned long trace_length)
 		throw PicoscopeException(return_status);
 	}
 
-	var_is_ready = false;
-	global_is_ready = false;
+	Picoscope::SetReady(false);
 	printf("run block\n");
 	return_status = ps6000RunBlock(handle, 0, trace_length, PS6000_TIMEBASE, 1, &time_in_ms, segment, CallBackBlock, NULL);
 	printf("time in ms: %ld\n", time_in_ms);
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
 	}
-	while (!global_is_ready && !_kbhit()) {
+	while (!Picoscope::IsReady() && !_kbhit()) {
 		Sleep(0);
 	}
 	unsigned long N_of_samples;
@@ -508,7 +505,7 @@ const char* Picoscope::PicoscopeException::GetVerboseErrorMessage() const
 		case PICO_GET_DATA_ACTIVE                  : return "(reserved for future use)";
 
 		// default:
-		// 	switch(getSeries()) {
+		// 	switch(GetSeries()) {
 		// 		case PICO_4000 :
 		// 			switch(errorNumber) {
 						case PICO_OK                             : return "The PicoScope 4000 is functioning correctly.";
