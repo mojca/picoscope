@@ -18,6 +18,9 @@ Channel::Channel(int i, Measurement* m)
 	SetVoltage(U_MAX);
 }
 
+Channel::~Channel()
+{}
+
 void Channel::SetVoltage(PICO_VOLTAGE u)
 {
 	// 6000
