@@ -10,6 +10,8 @@
 
 // using namespace std;
 
+bool Picoscope::var_is_ready;
+
 /* constructor */
 Picoscope::Picoscope(PICO_SERIES s) {
 	int i;
@@ -115,6 +117,12 @@ PICO_STATUS Picoscope::Close() {
 
 	return return_status;
 }
+
+void Picoscope::SetStatus(PICO_STATUS status)
+{
+	return_status = status;
+}
+
 
 void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 {
