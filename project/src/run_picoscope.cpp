@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdio.h>
 #include "windows.h"
 
 #include "picoscope.h"
@@ -14,6 +15,9 @@
 
 // #include <sys/types.h>
 // #include <time.h>
+
+#define MEGA(a) ((unsigned long)(a*1000000UL))
+#define GIGA(a) ((unsigned long)(a*1000000000UL))
 
 using namespace std;
 
@@ -31,13 +35,22 @@ int main(int argc, char** argv)
 		a->Enable();
 		a->SetVoltage(U_5V);
 		meas->SetTimebaseInPs(200UL);
-		meas->SetLength(1000000UL);
+		meas->SetLength(MEGA(1));
+		meas->AllocateMemory(MEGA(100));
 
-		cerr << "open picoscope\n";
 		pico->Open();
 		cerr << "run\n";
 		meas->RunBlock();
-		cerr << "close\n";
+		cerr << "get data\n";
+
+		cerr << "open file for writing\n";
+		FILE *f = fopen("C:\\Temp\\Data\\x.dat", "wb");
+		cerr << "file opened\n";
+		while(meas->GetNextData() > 0) {
+			meas->WriteDataBin(f, 0); // zero for channel A
+		}
+		fclose(f);
+
 		pico->Close();
 		cerr << "end\n";
 
@@ -56,7 +69,7 @@ int main(int argc, char** argv)
 		     << ex.GetErrorMessage() << endl;
 	// catch any exceptions
 	} catch(...) {
-		cout << "Some exception has occurred" << endl;
+		cerr << "Some exception has occurred" << endl;
 	}
 	return 0;
 }

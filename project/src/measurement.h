@@ -60,6 +60,8 @@ public:
 
 	void          SetMaxMemoryConsumption(unsigned long bytes);
 	unsigned long GetMaxMemoryConsuption() const { return max_memory_consumption; };
+	unsigned long GetMaxTraceLengthToFetch() const { return max_trace_length_to_fetch; };
+	void          AllocateMemory(unsigned long);
 
 	Picoscope*  GetPicoscope()  const { return picoscope; };
 	PICO_SERIES GetSeries()     const { return GetPicoscope()->GetSeries(); };
@@ -67,17 +69,32 @@ public:
 	Channel*    GetChannel(int);
 
 	void RunBlock();
+	unsigned long GetNextData();
+	void WriteDataBin(FILE *f,int);
+	// void    WriteDataTxt(FILE*);
+
+	unsigned long GetNextIndex() const { return next_index; };
+	void SetLengthFetched(unsigned long l);
+	unsigned long GetLengthFetched() const { return length_fetched; };
 
 private:
 	Picoscope         *picoscope;
 	unsigned long      timebase;
 	unsigned long      length;
+	unsigned long      length_fetched;
+	unsigned long      next_index; // where to start reading data next
 	// unsigned long      fileLength; // length of a single file
 	unsigned long      max_memory_consumption;    // in bytes
 	unsigned long      max_trace_length_to_fetch; // max_memory_consumption / (sizeof(short) * number_of_channels)
 
+	unsigned long      number_of_points_to_write;
+
 	Channel *channels[PICOSCOPE_N_CHANNELS];
 	short *data[PICOSCOPE_N_CHANNELS];
+	bool data_allocated[PICOSCOPE_N_CHANNELS];
+	unsigned long data_length[PICOSCOPE_N_CHANNELS];
+
+	void SetNextIndex(unsigned long);
 
 	// PICO_STATUS return_status;
 };

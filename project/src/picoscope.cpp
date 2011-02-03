@@ -67,8 +67,10 @@ PICO_STATUS Picoscope::Open() {
 	} else {
 		// finally: open the unit
 		if(GetSeries() == PICO_4000) {
+			std::cerr << "Open Picoscope 4000 ... ";
 			return_status = ps4000OpenUnit(&handle);
 		} else {
+			std::cerr << "Open Picoscope 6000 ... ";
 			return_status = ps6000OpenUnit(&handle, NULL);
 		}
 	}
@@ -87,10 +89,14 @@ PICO_STATUS Picoscope::Open() {
 	}
 	// throw PicoscopeUserException("this is not supposed to happen (just testing).");
 
+	std::cerr << "OK\n";
 	return return_status;
 }
 
-PICO_STATUS Picoscope::Close() {
+PICO_STATUS Picoscope::Close()
+{
+	std::cerr << "Close Picoscope ... ";
+
 	// previous operation has failed: do we really want to try to proceed? (maybe we could remove this statement)
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
@@ -101,13 +107,12 @@ PICO_STATUS Picoscope::Close() {
 	if(handle <= 0) {
 		throw PicoscopeUserException("This should not happen. Picoscope should be open, but the handle is not valid. Please report to developers.");
 	}
-	printf("stop\n");
 
-		if(GetSeries() == PICO_4000) {
-			return_status = ps4000Stop(handle);
-		} else {
-			return_status = ps6000Stop(handle);
-		}
+	if(GetSeries() == PICO_4000) {
+		return_status = ps4000Stop(handle);
+	} else {
+		return_status = ps6000Stop(handle);
+	}
 
 	if(return_status == PICO_OK) {
 		var_is_open = false;
@@ -115,6 +120,7 @@ PICO_STATUS Picoscope::Close() {
 		throw PicoscopeException(return_status);
 	}
 
+	std::cerr << "OK\n";
 	return return_status;
 }
 
