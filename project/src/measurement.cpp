@@ -6,6 +6,7 @@
 #include "picoscope.h"
 #include "measurement.h"
 #include "channel.h"
+#include "timing.h"
 
 #include "picoStatus.h"
 #include "ps4000Api.h"
@@ -238,6 +239,8 @@ Channel* Measurement::GetChannel(int ch)
 void Measurement::RunBlock()
 {
 	int i;
+	Timing t;
+
 	// test if channel settings have already been passed to picoscope
 	// and only pass them again if that isn't the case
 	for(i=0; i<GetNumberOfChannels(); i++) {
@@ -248,6 +251,7 @@ void Measurement::RunBlock()
 	// timebase
 	SetTimebaseInPicoscope();
 
+	t.Start();
 	if(GetSeries() == PICO_4000) {
 		// TODO
 	} else {
@@ -273,7 +277,8 @@ void Measurement::RunBlock()
 	while (!Picoscope::IsReady() && !_kbhit()) {
 		Sleep(2000);
 	}
-	std::cerr << "OK\n";
+	t.Stop();
+	std::cerr << "OK (" << t.GetSecondsDouble() << "s)\n";
 
 	// sets the index from where we want to start reading data to zero
 	SetNextIndex(0UL);
@@ -288,6 +293,7 @@ unsigned long Measurement::GetNextData()
 	int i;
 	short overflow=0;
 	unsigned long length_of_trace_askedfor, length_of_trace_fetched;
+	Timing t;
 
 	// it makes no sense to read any further: we are already at the end
 	if(GetNextIndex() >= GetLength()) {
@@ -295,8 +301,6 @@ unsigned long Measurement::GetNextData()
 		return 0UL;
 	}
 
-	std::cerr << "Getting data.\n";
-	// 
 	length_of_trace_askedfor = GetMaxTraceLengthToFetch();
 	if(GetNextIndex() + length_of_trace_askedfor > GetLength()) {
 		length_of_trace_askedfor = GetLength() - GetNextIndex();
@@ -304,7 +308,6 @@ unsigned long Measurement::GetNextData()
 	// allocate buffers
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		if(GetChannel(i)->IsEnabled()) {
-			std::cerr << "Allocating data for channel " << (char)('A'+i) << ".\n";
 			if(data_allocated[i] == false) {
 				throw "Unable to get data. Memory is not allocated.";
 			}
@@ -330,7 +333,8 @@ unsigned long Measurement::GetNextData()
 	}
 	// fetch data
 	length_of_trace_fetched = length_of_trace_askedfor;
-	std::cerr << "Get data from " << GetNextIndex() << " to " << GetNextIndex()+length_of_trace_askedfor << " ... ";
+	std::cerr << "Get data for points " << GetNextIndex() << "-" << GetNextIndex()+length_of_trace_askedfor << " (" << 100.0*(GetNextIndex()+length_of_trace_askedfor)/GetLength() << "%) ... ";
+	t.Start();
 	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
 	if(GetSeries() == PICO_4000) {
 		// TODO
@@ -346,6 +350,7 @@ unsigned long Measurement::GetNextData()
 			0,                          // segmentIndex
 			&overflow));                // *overflow
 	}
+	t.Stop();
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
 		std::cerr << "Unable to set memory for channel." << std::endl;
 		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
@@ -360,7 +365,7 @@ unsigned long Measurement::GetNextData()
 	if(length_of_trace_fetched != length_of_trace_askedfor) {
 		std::cerr << "Warning: The number of read samples was smaller than requested.\n";
 	}
-	std::cerr << "OK\n";
+	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
 	SetLengthFetched(length_of_trace_fetched);
 	SetNextIndex(GetNextIndex()+length_of_trace_fetched);
 }
@@ -374,13 +379,18 @@ void Measurement::SetLengthFetched(unsigned long l)
 void Measurement::WriteDataBin(FILE *f, int channel)
 {
 	int i;
-	std::cerr << "Write binary data " << GetLengthFetched() << std::endl;
+	Timing t;
+
+	std::cerr << "Write binary data for channel " << (char)('A'+channel) << " ... ";
+	t.Start();
 	// TODO: test if file exists
 	if(channel < 0 || channel >= GetNumberOfChannels()) {
 		throw "You can only write data for channels 0 - (N-1).";
 	} else {
 		if(GetChannel(channel)->IsEnabled()) {
 			fwrite(data[channel], sizeof(short), GetLengthFetched(), f);
+			// make sure the data is written
+			fflush(f);
 			// printf("writing with fwrite %d\n", channel);
 			// for(i=0; i<10; i++) {
 			// 	printf("%d\n", data[channel][i]);
@@ -390,6 +400,8 @@ void Measurement::WriteDataBin(FILE *f, int channel)
 			throw "The requested channel is not enabled.";
 		}
 	}
+	t.Stop();
+	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
 }
 
 void Measurement::SetNextIndex(unsigned long index)

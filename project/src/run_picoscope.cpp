@@ -6,6 +6,8 @@
 #include "measurement.h"
 #include "channel.h"
 
+#include "timing.h"
+
 #include "ps4000Api.h"
 #include "ps6000Api.h"
 // #include "picoStatus.h"
@@ -23,6 +25,8 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+	Timing t;
+	t.Start();
 	try {
 		// short **data;
 		// unsigned long length = (unsigned long)1e7;
@@ -31,31 +35,32 @@ int main(int argc, char** argv)
 		Picoscope6000 *pico = new Picoscope6000();
 		Measurement   *meas = new Measurement(pico);
 		Channel       *a    = meas->GetChannel(0);
+		Channel       *d    = meas->GetChannel(3);
 
 		a->Enable();
 		a->SetVoltage(U_5V);
-		meas->SetTimebaseInPs(200UL);
-		meas->SetLength(MEGA(1));
+		d->Enable();
+		d->SetVoltage(U_5V);
+		meas->SetTimebaseInPs(400UL);
+		meas->SetLength(MEGA(200));
 		meas->AllocateMemory(MEGA(100));
 
 		pico->Open();
-		cerr << "run\n";
 		meas->RunBlock();
-		cerr << "get data\n";
 
-		cerr << "open file for writing\n";
 		FILE *f = fopen("C:\\Temp\\Data\\x.dat", "wb");
-		cerr << "file opened\n";
 		while(meas->GetNextData() > 0) {
 			meas->WriteDataBin(f, 0); // zero for channel A
 		}
 		fclose(f);
 
 		pico->Close();
-		cerr << "end\n";
+		t.Stop();
 
+		cerr << "Timing: " << t.GetSecondsDouble() << "s\n";
 		delete pico;
 		delete meas;
+
 
 	} catch(Picoscope::PicoscopeException& ex) {
 		cerr << "Some picoscope exception:" << endl
