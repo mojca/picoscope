@@ -70,8 +70,8 @@ public:
 
 	void RunBlock();
 	unsigned long GetNextData();
-	void WriteDataBin(FILE *f,int);
-	// void    WriteDataTxt(FILE*);
+	void WriteDataBin(FILE*,int);
+	void WriteDataTxt(FILE*,int);
 
 	unsigned long GetNextIndex() const { return next_index; };
 	void SetLengthFetched(unsigned long l);

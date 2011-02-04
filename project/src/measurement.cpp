@@ -378,7 +378,6 @@ void Measurement::SetLengthFetched(unsigned long l)
 // TODO: we might want to use multiple buffers at the same time
 void Measurement::WriteDataBin(FILE *f, int channel)
 {
-	int i;
 	Timing t;
 
 	std::cerr << "Write binary data for channel " << (char)('A'+channel) << " ... ";
@@ -391,10 +390,32 @@ void Measurement::WriteDataBin(FILE *f, int channel)
 			fwrite(data[channel], sizeof(short), GetLengthFetched(), f);
 			// make sure the data is written
 			fflush(f);
-			// printf("writing with fwrite %d\n", channel);
-			// for(i=0; i<10; i++) {
-			// 	printf("%d\n", data[channel][i]);
-			// }
+		} else {
+			std::cerr << "The requested channel " << (char)('A'+channel) << "is not enabled.\n";
+			throw "The requested channel is not enabled.";
+		}
+	}
+	t.Stop();
+	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
+}
+
+void Measurement::WriteDataTxt(FILE *f, int channel)
+{
+	int i;
+	Timing t;
+
+	std::cerr << "Write text data for channel " << (char)('A'+channel) << " ... ";
+	t.Start();
+	// TODO: test if file exists
+	if(channel < 0 || channel >= GetNumberOfChannels()) {
+		throw "You can only write data for channels 0 - (N-1).";
+	} else {
+		if(GetChannel(channel)->IsEnabled()) {
+			for(i=0; i<GetLengthFetched(); i++) {
+				fprintf(f, "%d\n", data[channel][i]);
+			}
+			// make sure the data is written
+			fflush(f);
 		} else {
 			std::cerr << "The requested channel " << (char)('A'+channel) << "is not enabled.\n";
 			throw "The requested channel is not enabled.";

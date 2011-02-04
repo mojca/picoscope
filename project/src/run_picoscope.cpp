@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 
 		a->Enable();
 		a->SetVoltage(U_5V);
-		d->Enable();
+		// d->Enable();
 		d->SetVoltage(U_5V);
 		meas->SetTimebaseInPs(400UL);
 		meas->SetLength(MEGA(200));
@@ -48,11 +48,14 @@ int main(int argc, char** argv)
 		pico->Open();
 		meas->RunBlock();
 
-		FILE *f = fopen("C:\\Temp\\Data\\x.dat", "wb");
+		FILE *f = fopen("C:\\Temp\\Data\\x.bin", "wb");
+		FILE *g = fopen("C:\\Temp\\Data\\x.dat", "wt");
 		while(meas->GetNextData() > 0) {
 			meas->WriteDataBin(f, 0); // zero for channel A
+			meas->WriteDataTxt(g, 0); // zero for channel A
 		}
 		fclose(f);
+		fclose(g);
 
 		pico->Close();
 		t.Stop();
