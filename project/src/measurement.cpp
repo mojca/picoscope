@@ -241,6 +241,8 @@ void Measurement::RunBlock()
 	int i;
 	Timing t;
 
+	// we will have to start reading our data from beginning again
+	SetNextIndex(0);
 	// test if channel settings have already been passed to picoscope
 	// and only pass them again if that isn't the case
 	for(i=0; i<GetNumberOfChannels(); i++) {
@@ -274,7 +276,8 @@ void Measurement::RunBlock()
 	}
 	// TODO: maybe we want it to be asynchronous
 	// TODO: catch the _kbhit event!!!
-	while (!Picoscope::IsReady() && !_kbhit()) {
+	// while (!Picoscope::IsReady() && !_kbhit()) {
+	while (!Picoscope::IsReady()) {
 		Sleep(2000);
 	}
 	t.Stop();
