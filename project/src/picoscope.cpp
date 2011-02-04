@@ -463,7 +463,7 @@ const char* Picoscope::PicoscopeException::GetVerboseErrorMessage() const
 		case PICO_CONDITIONS                     : return "PICO_CONDITIONS"                      ;
 		case PICO_USER_CALLBACK                  : return "PICO_USER_CALLBACK"                   ;
 		case PICO_DEVICE_SAMPLING                : return "PICO_DEVICE_SAMPLING"                 ;
-		case PICO_NO_SAMPLES_AVAILABLE           : return "PICO_NO_SAMPLES_AVAILABLE"            ;
+		case PICO_NO_SAMPLES_AVAILABLE           : return "No samples available because a run has not been completed.";
 		case PICO_SEGMENT_OUT_OF_RANGE           : return "PICO_SEGMENT_OUT_OF_RANGE"            ;
 		case PICO_BUSY                           : return "PICO_BUSY"                            ;
 		case PICO_STARTINDEX_INVALID             : return "PICO_STARTINDEX_INVALID"              ;
