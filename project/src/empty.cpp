@@ -1,6 +1,7 @@
 #include <iostream>
 #include "windows.h"
 #include "picoscope.h"
+#include "args.h"
 #include "ps4000Api.h"
 #include "ps6000Api.h"
 // #include "picoStatus.h"
@@ -15,6 +16,10 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+	Args a;
+	a.parse_options(argc, argv);
+	return 0;
+
 	try {
 		// short **data;
 		// unsigned long length = (unsigned long)1e7;
