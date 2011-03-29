@@ -17,8 +17,11 @@ Measurement::Measurement(Picoscope *p)
 	int i;
 
 	picoscope = p;
+	is_triggered = false;
 	max_memory_consumption    = 0;
 	max_trace_length_to_fetch = 0;
+	ntraces = 1;
+	max_traces_to_fetch = 1;
 
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		// initialize the channels
@@ -44,6 +47,9 @@ Measurement::~Measurement()
 			data_allocated[i] = false;
 			data_length[i] = 0;
 		}
+	}
+	if(trigger != NULL) {
+		delete trigger;
 	}
 }
 // TODO: improve this; check for number of channels
@@ -89,9 +95,24 @@ void Measurement::SetTimebaseInPs(unsigned long picoseconds)
 			timebase = (unsigned long)(picoseconds/6400+4);
 		}
 	} else {
+		throw("not yet implemented.\n");
 		// TODO
 		timebase = 0UL;
 	}
+}
+
+double Measurement::GetTimebaseInNs()
+{
+	if(GetSeries() == PICO_6000) {
+		if(timebase<6) {
+			return 0.2*(1<<timebase);
+		} else {
+			return (timebase-4.0)/156.25e6;
+		}
+	} else {
+		throw("not yet implemented.\n");
+	}
+	return 0;
 }
 
 // when multiple channels are enabled we cannot have the highest sampling rate
@@ -120,32 +141,36 @@ void Measurement::FixTimebase()
 // this sets the timebase to picoscope
 void Measurement::SetTimebaseInPicoscope()
 {
+	float time_interval_ns;
+
 	// 4000
 	if(GetSeries() == PICO_4000) {
 		GetPicoscope()->SetStatus(ps4000GetTimebase2(
-			GetHandle(),   // handle
-			GetTimebase(), // timebase
-			GetLength(),   // noSamples
-			NULL,          // timeIntervalNanoseconds
-			0,             // oversample (TODO if needed)
-			NULL,          // maxSamples - the maximum number of samples available
-			0));           // segmentIndex - the index of the memory segment to use
+			GetHandle(),       // handle
+			GetTimebase(),     // timebase
+			GetLength(),       // noSamples
+			&time_interval_ns, // timeIntervalNanoseconds
+			0,                 // oversample (TODO if needed)
+			NULL,              // maxSamples - the maximum number of samples available
+			0));               // segmentIndex - the index of the memory segment to use
 	// 6000
 	} else {
 		GetPicoscope()->SetStatus(ps6000GetTimebase2(
-			GetHandle(),   // handle
-			GetTimebase(), // timebase
-			GetLength(),   // noSamples
-			NULL,          // timeIntervalNanoseconds
-			0,             // oversample (TODO if needed)
-			NULL,          // maxSamples - the maximum number of samples available
-			0));           // segmentIndex - the index of the memory segment to use
+			GetHandle(),       // handle
+			GetTimebase(),     // timebase
+			GetLength(),       // noSamples
+			&time_interval_ns, // timeIntervalNanoseconds
+			0,                 // oversample (TODO if needed)
+			NULL,              // maxSamples - the maximum number of samples available
+			0));               // segmentIndex - the index of the memory segment to use
 	}
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
 		std::cerr << "Unable to set the requested timebase (" << GetTimebase()
 		          << ") and sample number (" << GetLength() << ")" << std::endl;
 		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 	}
+
+	std::cerr << "-- Setting timebase; the interval will be " << time_interval_ns << " ns\n";
 }
 
 void Measurement::SetLength(unsigned long l)
@@ -153,11 +178,45 @@ void Measurement::SetLength(unsigned long l)
 	length = l;
 }
 
+void Measurement::SetNTraces(unsigned long n)
+{
+	ntraces = n;
+}
+
+
+unsigned long Measurement::GetLengthBeforeTrigger()
+{
+	double x_fraction;
+	if(IsTriggered()) {
+		x_fraction = GetTrigger()->GetXFraction();
+		if(x_fraction>=0 && x_fraction<=1) {
+			return (unsigned long)round((double)GetLength()*x_fraction);
+		// we didn't allow that when creating new trigger, but we could
+		// the idea is to use a number of samples instead of a fraction
+		} else if(x_fraction>=0 && x_fraction<=GetLength()) {
+			return (unsigned long)round(x_fraction);
+		} else {
+			throw("invalid value of x fraction of a simple trigger.\n");
+		}
+	} else {
+		return 0UL;
+	}
+}
+unsigned long Measurement::GetLengthAfterTrigger()
+{
+	if(IsTriggered()) {
+		return GetLength()-GetLengthBeforeTrigger();
+	} else {
+		return GetLength();
+	}
+}
+
 // sets the maximum allowed memory consumption
 // and the maximum trace length to be read at once
 void Measurement::SetMaxMemoryConsumption(unsigned long bytes)
 {
-	int i, enabled_channels = GetNumberOfEnabledChannels();
+	int enabled_channels = GetNumberOfEnabledChannels();
+	unsigned long single_trace_bytes;
 
 	max_memory_consumption    = bytes;
 	if (enabled_channels > 0) {
@@ -165,17 +224,37 @@ void Measurement::SetMaxMemoryConsumption(unsigned long bytes)
 	} else {
 		max_trace_length_to_fetch = bytes/sizeof(short);
 	}
+	if(GetNTraces() > 1) {
+		single_trace_bytes = sizeof(short)*enabled_channels*GetLength();
+		if(GetNTraces()*single_trace_bytes < max_memory_consumption) {
+			max_traces_to_fetch = GetNTraces();
+		} else {
+			max_traces_to_fetch = (unsigned long)floor(max_memory_consumption/single_trace_bytes);
+		}
+	}
 	assert(enabled_channels<=4);
 }
 
-void Measurement::AllocateMemory(unsigned long bytes)
+void Measurement::AllocateMemoryBlock(unsigned long bytes)
 {
 	int i;
 	unsigned long maxlen;
 
 	SetMaxMemoryConsumption(bytes);
 	maxlen = GetMaxTraceLengthToFetch();
-	std::cerr << "Allocating memory of length " << maxlen << " ... ";
+
+	std::cerr << "Allocating memory of length ";
+	if(maxlen<1e3) {
+		std::cerr << maxlen;
+	} else if(maxlen<5e5) {
+		std::cerr << maxlen*1e-3f << "k";
+	} else if(maxlen<5e8) {
+		std::cerr << maxlen*1e-6f << "M";
+	} else {
+		std::cerr << maxlen*1e-9f << "G";
+	}
+	std::cerr << " ... ";
+
 	try {
 		for(i=0; i<GetNumberOfChannels(); i++) {
 			if(GetChannel(i)->IsEnabled()) {
@@ -200,10 +279,65 @@ void Measurement::AllocateMemory(unsigned long bytes)
 		}
 		std::cerr << "OK\n";
 	} catch(...) {
-		std::cerr << "Unable to allocate memory in Measurement::AllocateMemory, tried to allocate " << bytes << "bytes." << std::endl;
+		std::cerr << "Unable to allocate memory in Measurement::AllocateMemoryBlock, tried to allocate " << bytes << "bytes." << std::endl;
 		throw;
 	}
 }
+
+void Measurement::AllocateMemoryRapidBlock(unsigned long bytes)
+{
+	int i;
+	unsigned long maxtraces, maxlen, memlen;
+
+	SetMaxMemoryConsumption(bytes);
+	maxtraces = GetMaxTracesToFetch();
+	// TODO: one should not multiply with GetNumberOfEnabledChannels() !!!
+	maxlen    = maxtraces*GetLength();
+	memlen    = maxlen*sizeof(short)*GetNumberOfEnabledChannels();
+
+	std::cerr << "Allocating memory of length ";
+	if(memlen<1e3) {
+		std::cerr << memlen;
+	} else if(memlen<5e5) {
+		std::cerr << memlen*1e-3f << "k";
+	} else if(memlen<5e8) {
+		std::cerr << memlen*1e-6f << "M";
+	} else {
+		std::cerr << memlen*1e-9f << "G";
+	}
+	std::cerr << " ... ";
+
+	try {
+		for(i=0; i<GetNumberOfChannels(); i++) {
+			if(GetChannel(i)->IsEnabled()) {
+				if(data_allocated[i]) {
+					if(data_length[i] == maxlen) {
+						// no need to do anything; data is already allocated and of the proper size
+						// however it is still weird to call this function
+						std::cerr << "Warning: Memory for channel " << (char)('A'+i) << " has already been allocated.\n";
+					} else {
+						std::cerr << "Warning: Memory for channel " << (char)('A'+i) << " has already been allocated; changing size.\n";
+						delete [] data[i];
+						// std::cerr << "allocate channel " << i << " with size" << maxlen << "\n";
+						data[i] = new short[maxlen];
+						data_allocated[i] = true;
+						data_length[i] = maxlen;
+					}
+				} else {
+					std::cerr << "(allocate channel " << (char)(i+'A') << " with size " << maxlen << ")\n";
+					data[i] = new short[maxlen];
+					data_allocated[i] = true;
+					data_length[i] = maxlen;
+				}
+			}
+		}
+		std::cerr << "OK\n";
+	} catch(...) {
+		std::cerr << "Unable to allocate memory in Measurement::AllocateMemoryBlock, tried to allocate " << bytes << "bytes." << std::endl;
+		throw;
+	}
+}
+
 int Measurement::GetNumberOfChannels() const
 {
 	return GetPicoscope()->GetNumberOfChannels();
@@ -240,6 +374,7 @@ void Measurement::RunBlock()
 {
 	int i;
 	Timing t;
+	unsigned long max_length;
 
 	// we will have to start reading our data from beginning again
 	SetNextIndex(0);
@@ -252,27 +387,68 @@ void Measurement::RunBlock()
 	FixTimebase();
 	// timebase
 	SetTimebaseInPicoscope();
+	// trigger
+	if(IsTriggered()) {
+		GetTrigger()->SetTriggerInPicoscope();
+	}
+
+	// for rapid block mode
+	if(GetNTraces() > 1) {
+		// TODO - check that GetLength()*GetNumberOfEnabledChannels()*GetNTraces() doesn't exceed the limit
+		if(GetSeries() == PICO_4000) {
+			throw("not yet implemented.\n");
+			// TODO
+		} else {
+			GetPicoscope()->SetStatus(ps6000SetNoOfCaptures(
+				GetHandle(),    // handle
+				GetNTraces())); // nCaptures
+		}
+		if(GetPicoscope()->GetStatus() != PICO_OK) {
+			std::cerr << "Unable to set number of captures to " << GetNTraces() << std::endl;
+			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+		}
+		if(GetSeries() == PICO_4000) {
+			throw("not yet implemented.\n");
+			// TODO
+		} else {
+			GetPicoscope()->SetStatus(ps6000MemorySegments(
+				GetHandle(),   // handle
+				GetNTraces(),  // nSegments
+				&max_length));
+		}
+		if(GetPicoscope()->GetStatus() != PICO_OK) {
+			std::cerr << "Unable to set number of segments to " << GetNTraces() << std::endl;
+			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+		}
+		if(max_length < GetLength()) {
+			std::cerr << "The maximum length of trace you can get with " << GetNTraces()
+			          << " traces is " << max_length << ", but you requested " << GetLength() << "\n";
+			throw;
+		}
+	}
 
 	t.Start();
 	if(GetSeries() == PICO_4000) {
+		throw("not yet implemented.\n");
 		// TODO
 	} else {
 		GetPicoscope()->SetStatus(ps6000RunBlock(
-			GetHandle(),   // handle
-			0,             // noOfPreTriggerSamples
-			GetLength(),   // noOfPostTriggerSamples
-			timebase,      // timebase
-			1,             // ovesample
-			NULL,          // *timeIndisposedMs
-			0,             // segmentIndex
-			CallBackBlock, // lpReady
-			NULL));        // *pParameter
+			GetHandle(),              // handle
+			GetLengthBeforeTrigger(), // noOfPreTriggerSamples
+			GetLengthAfterTrigger(),  // noOfPostTriggerSamples
+			timebase,                 // timebase
+			1,                        // ovesample
+			NULL,                     // *timeIndisposedMs
+			0,                        // segmentIndex
+			CallBackBlock,            // lpReady
+			NULL));                   // *pParameter
 	}
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
 		std::cerr << "Unable to start collecting samples" << std::endl;
 		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 	} else {
-		std::cerr << "Start collecting samples in block mode ... ";
+		std::cerr << "Start collecting samples in "
+		          << ((GetNTraces() > 1) ? "rapid " : "") << "block mode ... ";
 	}
 	// TODO: maybe we want it to be asynchronous
 	// TODO: catch the _kbhit event!!!
@@ -340,6 +516,7 @@ unsigned long Measurement::GetNextData()
 	t.Start();
 	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
 	if(GetSeries() == PICO_4000) {
+		throw("not yet implemented.\n");
 		// TODO
 	} else {
 		GetPicoscope()->SetStatus(ps6000GetValues(
@@ -371,6 +548,138 @@ unsigned long Measurement::GetNextData()
 	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
 	SetLengthFetched(length_of_trace_fetched);
 	SetNextIndex(GetNextIndex()+length_of_trace_fetched);
+
+	return length_of_trace_fetched;
+}
+
+unsigned long Measurement::GetNextDataBulk()
+{
+	unsigned long i, j, index;
+	short *overflow;
+	unsigned long traces_asked_for, length_of_trace_fetched;
+	// unsigned long length_of_trace_askedfor, length_of_trace_fetched;
+	Timing t;
+
+	// std::cerr << "(GetNextDataBulk: " << GetNextIndex() << ", " << GetMaxTracesToFetch() << ")\n";
+
+	// it makes no sense to read any further: we are already at the end
+	if(GetNextIndex() >= GetNTraces()) {
+		std::cerr << "Stop fetching data from ociloscope." << std::endl;
+		return 0UL;
+	}
+
+/*
+	try {
+		for(i=0; i<GetNumberOfChannels(); i++) {
+			if(GetChannel(i)->IsEnabled()) {
+				delete [] data[i];
+				data[i] = new short[GetMaxTracesToFetch()*GetLength()];
+			}
+		}
+	} catch(...) {
+		std::cerr << "Unable to allocate memory in Measurement::AllocateMemoryBlock." << std::endl;
+		throw;
+	}
+/**/
+
+	traces_asked_for = GetMaxTracesToFetch();
+	if(GetNextIndex() + traces_asked_for > GetNTraces()) {
+		traces_asked_for = GetNTraces() - GetNextIndex();
+	}
+	// allocate buffers
+	for(i=0; i<GetNumberOfChannels(); i++) {
+		if(GetChannel(i)->IsEnabled()) {
+			memset(data[i], 0, GetLength()*traces_asked_for*sizeof(short));
+		}
+		for(j=0; j<traces_asked_for; j++) {
+			index = j+GetNextIndex();
+			if(GetChannel(i)->IsEnabled()) {
+				if(data_allocated[i] == false) {
+					throw "Unable to get data. Memory is not allocated.";
+				}
+				if(GetSeries() == PICO_4000) {
+					throw "not yet implemented";
+					// GetPicoscope()->SetStatus(ps4000SetDataBufferBulk(
+					// 	GetHandle(),                  // handle
+					// 	(PS4000_CHANNEL)i,            // channel
+					// 	data[i],                      // *buffer
+					// 	GetMaxTraceLengthToFetch())); // bufferLength
+				} else {
+					// unsigned long dj = (j+GetNextIndex()/GetMaxTracesToFetch())%traces_asked_for;
+					// std::cerr << "-- (set data buffer bulk: [" << i << "][" << dj
+					// 	<< "], len:" << GetLength() << ", index:" << index
+					// 	<< ", from:" << GetNextIndex()
+					// 	<< ", to:" << GetNextIndex()+traces_asked_for-1 << "\n";
+					GetPicoscope()->SetStatus(ps6000SetDataBufferBulk(
+						GetHandle(),                // handle
+						(PS6000_CHANNEL)i,          // channel
+						&data[i][j*GetLength()],    // *buffer
+						GetLength(),                // bufferLength
+						index,                      // waveform
+						PS6000_RATIO_MODE_NONE));   // downSampleRatioMode
+				}
+				if(GetPicoscope()->GetStatus() != PICO_OK) {
+					std::cerr << "Unable to set memory for channel." << std::endl;
+					throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+				}
+			}
+		}
+	}
+	// fetch data
+	// length_of_trace_fetched = length_of_trace_askedfor;
+	std::cerr << "Get data for traces " << GetNextIndex() << "-" << GetNextIndex()+traces_asked_for << " (" << 100.0*(GetNextIndex()+traces_asked_for)/GetNTraces() << "%) ... ";
+	overflow = new short[traces_asked_for];
+	memset(overflow, 0, traces_asked_for*sizeof(short));
+	// std::cerr << "-- x1\n";
+	t.Start();
+	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
+	if(GetSeries() == PICO_4000) {
+		throw("not yet implemented.\n");
+		// TODO
+	} else {
+		// TODO: not sure about this ...
+		length_of_trace_fetched = GetLength();
+		GetPicoscope()->SetStatus(ps6000GetValuesBulk(
+			GetHandle(),                // handle
+			&length_of_trace_fetched,   // *noOfSamples
+			// TODO: start index
+			GetNextIndex(),             // fromSegmentIndex
+			GetNextIndex()+traces_asked_for-1, // toSegmentIndex
+			// this could also be min(GetMaxTraceLengthToFetch(),wholeLength-startindex)
+			1,                          // downSampleRatio
+			PS6000_RATIO_MODE_NONE,     // downSampleRatioMode
+			overflow));                // *overflow
+	}
+	t.Stop();
+	// std::cerr << "-- x2\n";
+	if(GetPicoscope()->GetStatus() != PICO_OK) {
+		std::cerr << "Unable to set memory for channel." << std::endl;
+		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+	}
+	for(i=0; i<traces_asked_for; i++) {
+		for(j=0; i<GetNumberOfChannels(); i++) {
+			if(overflow[i] & (1<<j)) {
+				std::cerr << "Warning: Overflow on channel " << (char)('A'+i) << " of trace " << i+GetNextIndex() << ".\n";
+			}
+		}
+	}
+	delete [] overflow;
+	// if(length_of_trace_fetched != length_of_trace_askedfor) {
+	// 	std::cerr << "Warning: The number of read samples was smaller than requested.\n";
+	// }
+
+	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
+
+	// std::cerr << "length of trace fetched: " << length_of_trace_fetched << "\n";
+	// std::cerr << "total length: " << traces_asked_for*length_of_trace_fetched << "\n";
+
+	SetLengthFetched(traces_asked_for*length_of_trace_fetched);
+	// std::cerr << "-- next index is now " << GetNextIndex() << ", will be set to " << GetNextIndex() + traces_asked_for << "\n";
+	SetNextIndex(GetNextIndex()+traces_asked_for);
+	// std::cerr << "-- next index is now " << GetNextIndex() << "\n";
+	// std::cerr << "-- return value " << traces_asked_for << "\n";
+
+	return traces_asked_for;
 }
 
 void Measurement::SetLengthFetched(unsigned long l)
@@ -433,3 +742,36 @@ void Measurement::SetNextIndex(unsigned long index)
 	// TODO: check that the index makes sense at all
 	next_index = index;
 }
+
+void Measurement::AddSimpleTrigger(Channel* ch, double x_frac, double y_frac)
+{
+	is_triggered = true;
+	// TODO: must be improved for more fancy triggers
+//	if(trigger != NULL) delete trigger;
+	trigger = new Trigger(ch, x_frac, y_frac);
+}
+
+void Measurement::SetTrigger(Trigger *tr)
+{
+	is_triggered = true;
+	// TODO: must be improved for more fancy triggers
+	if(trigger != NULL) delete trigger;
+	trigger = tr;
+}
+
+void Measurement::AddSignalGeneratorSquare(PICO_VOLTAGE v, float frequency)
+{
+	unsigned long peak_to_peak = v;
+	if(GetSeries() == PICO_4000) {
+		throw("not yet implemented.\n");
+		// TODO
+	} else {
+		throw("not yet implemented.\n");
+		// GetPicoscope()->SetStatus(ps6000SetSigGenBuiltin(
+		// 	GetHandle(),                // handle
+		// 	0,                          // offsetVoltage
+		// 	peak_to_peak
+	}
+
+}
+

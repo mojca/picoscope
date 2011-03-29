@@ -16,7 +16,7 @@ bool Picoscope::var_is_ready;
 Picoscope::Picoscope(PICO_SERIES s) {
 	int i;
 
-	series  = series;
+	series  = s;
 	var_is_open  = false;
 	SetReady(false);
 	handle = PICOSCOPE_HANDLE_UNITIALIZED;

@@ -21,6 +21,11 @@ Channel::Channel(int i, Measurement* m)
 Channel::~Channel()
 {}
 
+Measurement* Channel::GetMeasurement() const { return measurement; }
+Picoscope*   Channel::GetPicoscope()   const { return GetMeasurement()->GetPicoscope(); }
+PICO_SERIES  Channel::GetSeries()      const { return GetPicoscope()->GetSeries(); }
+short        Channel::GetHandle()      const { return GetPicoscope()->GetHandle(); }
+
 void Channel::SetVoltage(PICO_VOLTAGE u)
 {
 	// 6000

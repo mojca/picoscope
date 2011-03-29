@@ -12,6 +12,22 @@ typedef enum picoscopeSeries {
 	PICO_6000
 } PICO_SERIES;
 
+typedef enum picoscopeVoltage
+{
+	U_50mV,
+	U_100mV,
+	U_200mV,
+	U_500mV,
+	U_1V,
+	U_2V,
+	U_5V,
+	U_10V,
+	U_20V,
+	U_50V,
+	U_100V,
+	U_MAX
+} PICO_VOLTAGE;
+
 #define PICOSCOPE_N_CHANNELS 4
 
 #define PICOSCOPE_HANDLE_UNITIALIZED  -2

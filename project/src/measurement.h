@@ -1,27 +1,26 @@
 #ifndef __MEASUREMENT_H__
 #define __MEASUREMENT_H__
 
-class Channel;
-class Picoscope;
-
-typedef enum picoVoltage
-{
-	U_50mV,
-	U_100mV,
-	U_200mV,
-	U_500mV,
-	U_1V,
-	U_2V,
-	U_5V,
-	U_10V,
-	U_20V,
-	U_50V,
-	U_100V,
-	U_MAX
-} PICO_VOLTAGE;
+// typedef enum picoChannel
+// {
+// 	CHANNEL_A,
+// 	CHANNEL_B,
+// 	CHANNEL_C,
+// 	CHANNEL_D //,
+// //	PS_EXTERNAL,
+// //	PS_MAX_CHANNELS = PS_EXTERNAL,
+// //	PS_TRIGGER_AUX,
+// //	PS_MAX_TRIGGER_SOURCES
+// } PICO_CHANNEL;
 
 #include "picoscope.h"
-// #include "channel.h"
+#include "channel.h"
+#include "trigger.h"
+
+// class Picoscope;
+// class Channel;
+class Trigger;
+
 
 /*
 	- filename
@@ -44,15 +43,21 @@ public:
 	// void SetMaxTimebase();
 	void SetTimebaseInPs(unsigned long);
 	void FixTimebase();
+	double GetTimebaseInNs();
 
+	bool IsTriggered() const { return is_triggered; };
 	void SetTimebaseInPicoscope(); // sends the information to picoscope
 
 	void SetLength(unsigned long);
+	void SetNTraces(unsigned long);
 
 	unsigned long      GetTimebase()   const { return timebase; };
 	unsigned long      GetLength()     const { return length;   };
+	unsigned long      GetNTraces()    const { return ntraces;  };
 	// unsigned long GetFileLength() const;
 	unsigned long      GetMemLength()  const;
+	unsigned long      GetLengthBeforeTrigger();
+	unsigned long      GetLengthAfterTrigger();
 
 	void EnableChannels(bool a, bool b, bool c, bool d);
 	int  GetNumberOfChannels() const;
@@ -61,15 +66,19 @@ public:
 	void          SetMaxMemoryConsumption(unsigned long bytes);
 	unsigned long GetMaxMemoryConsuption() const { return max_memory_consumption; };
 	unsigned long GetMaxTraceLengthToFetch() const { return max_trace_length_to_fetch; };
-	void          AllocateMemory(unsigned long);
+	unsigned long GetMaxTracesToFetch() const { return max_traces_to_fetch; };
+	void          AllocateMemoryBlock(unsigned long);
+	void          AllocateMemoryRapidBlock(unsigned long);
 
 	Picoscope*  GetPicoscope()  const { return picoscope; };
 	PICO_SERIES GetSeries()     const { return GetPicoscope()->GetSeries(); };
 	short       GetHandle()     const { return GetPicoscope()->GetHandle(); };
+	Trigger*    GetTrigger()    const { return trigger; };
 	Channel*    GetChannel(int);
 
 	void RunBlock();
 	unsigned long GetNextData();
+	unsigned long GetNextDataBulk();
 	void WriteDataBin(FILE*,int);
 	void WriteDataTxt(FILE*,int);
 
@@ -77,17 +86,27 @@ public:
 	void SetLengthFetched(unsigned long l);
 	unsigned long GetLengthFetched() const { return length_fetched; };
 
+	void AddSimpleTrigger(Channel *, double, double);
+	void SetTrigger(Trigger *);
+
+	void AddSignalGeneratorSquare(PICO_VOLTAGE, float);
+
 private:
 	Picoscope         *picoscope;
+	Trigger           *trigger;
 	unsigned long      timebase;
 	unsigned long      length;
+	unsigned long      ntraces;
 	unsigned long      length_fetched;
 	unsigned long      next_index; // where to start reading data next
 	// unsigned long      fileLength; // length of a single file
 	unsigned long      max_memory_consumption;    // in bytes
 	unsigned long      max_trace_length_to_fetch; // max_memory_consumption / (sizeof(short) * number_of_channels)
+	unsigned long      max_traces_to_fetch;
 
 	unsigned long      number_of_points_to_write;
+
+	bool is_triggered;
 
 	Channel *channels[PICOSCOPE_N_CHANNELS];
 	short *data[PICOSCOPE_N_CHANNELS];
