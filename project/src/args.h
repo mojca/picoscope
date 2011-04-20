@@ -24,6 +24,7 @@ enum PICO_args {
 	PICO_ARG_CHANNEL,  // --ch
 	PICO_ARG_FILENAME, // --name
 	PICO_ARG_VOLTAGE,  // --voltage | --U
+	PICO_ARG_RATE,     // --dt
 	PICO_ARG_TRIGGER,  // --trigger | --trig
 	PICO_ARG_SIGNAL_SQUARE, // --square
 	PICO_ARG_OTHER,
@@ -44,6 +45,7 @@ static struct gen_table PICO_arguments[] = {
 	{ "channel", PICO_ARG_CHANNEL  },
 	{ "U",       PICO_ARG_VOLTAGE  }, // --U <XmV>
 	{ "voltage", PICO_ARG_VOLTAGE  },
+	{ "dt",      PICO_ARG_RATE     }, // --dt <number>ns | <nuber>ps | <number>MHz <number>GHz
 	{ "trigger", PICO_ARG_TRIGGER  }, // --trigger <xfrac> <yfrac>
 	{ "trig",    PICO_ARG_TRIGGER  },
 	{ "name",    PICO_ARG_FILENAME },
@@ -76,13 +78,19 @@ public:
 	Args();
 	~Args();
 
-	void parse_options(int, char **);
+	void parse_options(int, char **, Measurement *m);
+
+	Measurement* GetMeasurement() const { return measurement; };
 
 	void SetFilename(char *);
 	char* GetFilename()       const { return filename; }
-	char* GetFilenameBinary() const { return filename_binary; }
-	char* GetFilenameText()   const { return filename_text; }
+	char* GetFilenameBinary() const { return filename_binary[4]; }
+	char* GetFilenameText()   const { return filename_text[4]; }
 	char* GetFilenameMeta()   const { return filename_meta; }
+
+	// TODO: this should throw an error if i is not between 0 and 3
+	char* GetFilenameBinary(int i) const { return filename_binary[i]; }
+	char* GetFilenameText(int i)   const { return filename_text[i]; }
 
 
 	PICO_VOLTAGE ParseVoltage(char *);
@@ -90,6 +98,8 @@ public:
 	void SetVoltage(PICO_VOLTAGE v) { voltage = v; };
 	PICO_VOLTAGE GetVoltage() const { return voltage; };
 	double GetVoltageDouble();
+
+	void ParseAndSetRate(char *);
 
 	void ParseAndSetLength(char *);
 	void SetLength(unsigned long);
@@ -101,13 +111,18 @@ public:
 	void ParseAndSetTrigger(char *, char *);
 	Trigger* GetTrigger(Channel *ch);
 
+	void ParseAndSetSquareSignalGenerator(char *, char *);
+
+	void ParseAndSetChannels(char *);
+
 	void PrintUsage();
 	bool IsJustHelp() const { return is_just_help; };
 	bool IsTextOutput() const { return is_text_output; };
 	bool IsBinaryOutput() const { return is_binary_output; };
 
 private:
-	char *filename, *filename_binary, *filename_text, *filename_meta;
+	Measurement *measurement;
+	char *filename, *filename_binary[5], *filename_text[5], *filename_meta;
 	unsigned long length;
 	unsigned long ntraces;
 	PICO_VOLTAGE voltage;
@@ -115,6 +130,7 @@ private:
 	double x_frac, y_frac;
 	bool is_just_help;
 	bool is_binary_output, is_text_output;
+	// bool channel_enabled[PICOSCOPE_N_CHANNELS];
 
 	PICO_VOLTAGE generator_voltage;
 	// unsigned long generator_ns;

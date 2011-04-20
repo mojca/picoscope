@@ -36,6 +36,7 @@ void test(short *x)
 int main(int argc, char** argv)
 {
 	Timing t;
+	int i;
 
 	// #define XYMAX 4200000
 	// std::cerr << "test start\n";
@@ -55,16 +56,20 @@ int main(int argc, char** argv)
 
 		Picoscope6000 *pico = new Picoscope6000();
 		Measurement   *meas = new Measurement(pico);
-		Channel       *a    = meas->GetChannel(0);
+		Channel       *ch[4];
+
+		meas->SetTimebaseInPs(400);
+		meas->EnableChannels(true,false,false,false);
+		for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+			ch[i] = meas->GetChannel(i);
+		}
 
 		// std::cerr << "test w1\n";
-
 		// meas->AddSimpleTrigger(a,0.5,-0.3);
-
 		// std::cerr << "test w2\n";
 
 		Args x;
-		x.parse_options(argc, argv);
+		x.parse_options(argc, argv, meas);
 		if(x.IsJustHelp()) {
 			return 0;
 		}
@@ -75,12 +80,15 @@ int main(int argc, char** argv)
 
 		// std::cerr << "test w3\n";
 
-		a->Enable();
-		meas->SetTimebaseInPs(200);
 		// meas->SetTimebaseInPs(10000);
 
+		// TODO: fixme
+		for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+			ch[i]->SetVoltage(x.GetVoltage());
+		}
+
 		// a->SetVoltage(U_100mV);
-		a->SetVoltage(x.GetVoltage());
+		// a[0]->SetVoltage(x.GetVoltage());
 		// meas->SetLength(GIGA(1));
 		meas->SetLength(x.GetLength());
 
@@ -101,12 +109,34 @@ int main(int argc, char** argv)
 		if(x.GetLength()>0) {
 
 			FILE *f = NULL;
-			FILE *fb = NULL, *ft = NULL;
+			FILE *fb[4] = {NULL,NULL,NULL,NULL}, *ft[4] = {NULL,NULL,NULL,NULL};
 
 			struct tm *current;
 			time_t now;
 			time(&now);
 			current = localtime(&now);
+
+			for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+				if(ch[i]->IsEnabled()) {
+					if(x.IsTextOutput()) {
+						ft[i] = fopen(x.GetFilenameText(i), "wt");
+						if(ft[i] == NULL) {
+							throw("Unable to open text file.\n"); // TODO: write filename
+						}
+					}
+					if(x.IsBinaryOutput()) {
+						fb[i] = fopen(x.GetFilenameBinary(i), "wb");
+						if(fb[i] == NULL) {
+							throw("Unable to open binary file.\n"); // TODO: write filename
+						}
+					}
+				}
+			}
+
+			/************************************************************/
+			pico->Open();
+			meas->InitializeSignalGenerator();
+			meas->RunBlock();
 
 			/* metadata */
 			f = fopen(x.GetFilenameMeta(), "wt");
@@ -116,59 +146,58 @@ int main(int argc, char** argv)
 			fprintf(f, "timestamp: %d-%02d-%02d %02d:%02d:%02d\n\n",
 				current->tm_year+1900, current->tm_mon+1, current->tm_mday,
 				current->tm_hour, current->tm_min, current->tm_sec);
+			fprintf(f, "channels:  ");
+			for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+				if(ch[i]->IsEnabled()) {
+					fprintf(f, "%c", 'A'+i);
+				}
+			}
+			fprintf(f, "\n");
 			fprintf(f, "length:    %ld\n", x.GetLength());
 			fprintf(f, "range:     %g V\n", x.GetVoltageDouble());
-			fprintf(f, "unit_x:    %.1lf ns\n", meas->GetTimebaseInNs());
+			fprintf(f, "unit_x:    %.1lf ns | %.1lf ns\n", meas->GetTimebaseInNs(), meas->GetReportedTimebaseInNs());
 			fprintf(f, "unit_y:    %.6le V\n", x.GetVoltageDouble()*3.0517578125e-5);
 			fprintf(f, "out_bin:   %s\n", x.IsTextOutput() ? "yes" : "no");
 			fprintf(f, "out_dat:   %s\n", x.IsBinaryOutput() ? "yes" : "no");
 			
 			fclose(f);
 
-			if(x.IsTextOutput()) {
-				ft = fopen(x.GetFilenameText(), "wt");
-				if(ft == NULL) {
-					throw("Unable to open text file.\n"); // TODO: write filename
-				}
-			}
-			if(x.IsBinaryOutput()) {
-				fb = fopen(x.GetFilenameBinary(), "wb");
-				if(fb == NULL) {
-					throw("Unable to open binary file.\n"); // TODO: write filename
-				}
-			}
-
-
-			/************************************************************/
-			pico->Open();
-			meas->RunBlock();
-
 			// FILE *g = fopen("C:\\Temp\\Data\\x.dat", "wt");
 			if(x.GetNTraces() > 1) {
 				while(meas->GetNextDataBulk() > 0) {
-					if(x.IsTextOutput()) {
-						meas->WriteDataTxt(ft, 0); // zero for channel A
-					}
-					if(x.IsBinaryOutput()) {
-						meas->WriteDataBin(fb, 0); // zero for channel A
+					for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+						if(ch[i]->IsEnabled()) {
+							if(x.IsTextOutput()) {
+								meas->WriteDataTxt(ft[i], i); // zero for channel A
+							}
+							if(x.IsBinaryOutput()) {
+								meas->WriteDataBin(fb[i], i); // zero for channel A
+							}
+						}
 					}
 				}
 			} else {
 				while(meas->GetNextData() > 0) {
-					if(x.IsTextOutput()) {
-						meas->WriteDataTxt(ft, 0); // zero for channel A
-					}
-					if(x.IsBinaryOutput()) {
-						meas->WriteDataBin(fb, 0); // zero for channel A
+					for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+						if(ch[i]->IsEnabled()) {
+							if(x.IsTextOutput()) {
+								meas->WriteDataTxt(ft[i], i); // zero for channel A
+							}
+							if(x.IsBinaryOutput()) {
+								meas->WriteDataBin(fb[i], i); // zero for channel A
+							}
+						}
 					}
 				}
 			}
 
-			if(ft != NULL) {
-				fclose(ft);
-			}
-			if(fb != NULL) {
-				fclose(fb);
+			for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+				if(ft[i] != NULL) {
+					fclose(ft[i]);
+				}
+				if(fb[i] != NULL) {
+					fclose(fb[i]);
+				}
 			}
 
 			// apparently this doesn't work for some weird reason

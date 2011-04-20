@@ -22,6 +22,8 @@ Measurement::Measurement(Picoscope *p)
 	max_trace_length_to_fetch = 0;
 	ntraces = 1;
 	max_traces_to_fetch = 1;
+	timebase_reported_by_osciloscope = 0.0;
+	use_signal_generator = false;
 
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		// initialize the channels
@@ -101,13 +103,18 @@ void Measurement::SetTimebaseInPs(unsigned long picoseconds)
 	}
 }
 
+void Measurement::SetTimebaseInNs(unsigned long nanoseconds)
+{
+	SetTimebaseInPs(nanoseconds*1000UL);
+}
+
 double Measurement::GetTimebaseInNs()
 {
 	if(GetSeries() == PICO_6000) {
 		if(timebase<6) {
 			return 0.2*(1<<timebase);
 		} else {
-			return (timebase-4.0)/156.25e6;
+			return (timebase-4.0)*6.4;
 		}
 	} else {
 		throw("not yet implemented.\n");
@@ -171,6 +178,7 @@ void Measurement::SetTimebaseInPicoscope()
 	}
 
 	std::cerr << "-- Setting timebase; the interval will be " << time_interval_ns << " ns\n";
+	timebase_reported_by_osciloscope = (double)time_interval_ns;
 }
 
 void Measurement::SetLength(unsigned long l)
@@ -759,19 +767,51 @@ void Measurement::SetTrigger(Trigger *tr)
 	trigger = tr;
 }
 
-void Measurement::AddSignalGeneratorSquare(PICO_VOLTAGE v, float frequency)
+void Measurement::InitializeSignalGenerator()
 {
-	unsigned long peak_to_peak = v;
+	float frequency = signal_generator_frequency;
+
+	if(use_signal_generator == false) {
+		return;
+	}
+
+	if(frequency < PS6000_MIN_FREQUENCY || frequency > PS6000_SQUARE_MAX_FREQUENCY) {
+		std::cerr << "Frequency of signal generator (" << frequency << " Hz) is not valid" << std::endl;
+		throw;
+	}
 	if(GetSeries() == PICO_4000) {
 		throw("not yet implemented.\n");
 		// TODO
 	} else {
-		throw("not yet implemented.\n");
-		// GetPicoscope()->SetStatus(ps6000SetSigGenBuiltin(
-		// 	GetHandle(),                // handle
-		// 	0,                          // offsetVoltage
-		// 	peak_to_peak
+		// throw("not yet implemented.\n");
+		GetPicoscope()->SetStatus(ps6000SetSigGenBuiltIn(
+			GetHandle(),                // handle
+			0,                          // offsetVoltage
+			signal_generator_peak_to_peak_in_microvolts,
+			PS6000_SQUARE,
+			frequency,
+			frequency,
+			0.0,
+			1000.0,
+			PS6000_UP,
+			PS6000_ES_OFF,
+			0,
+			0,
+			PS6000_SIGGEN_RISING,
+			PS6000_SIGGEN_NONE,
+			0));
 	}
+	if(GetPicoscope()->GetStatus() != PICO_OK) {
+		std::cerr << "Unable to setup signal generator." << std::endl;
+		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+	}
+}
 
+void Measurement::AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvolts, float frequency)
+{
+	use_signal_generator = true;
+
+	signal_generator_peak_to_peak_in_microvolts = peak_to_peak_in_microvolts;
+	signal_generator_frequency = frequency;
 }
 

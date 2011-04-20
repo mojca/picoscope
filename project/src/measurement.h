@@ -42,8 +42,10 @@ public:
 	// TODO: create a complete set
 	// void SetMaxTimebase();
 	void SetTimebaseInPs(unsigned long);
+	void SetTimebaseInNs(unsigned long);
 	void FixTimebase();
 	double GetTimebaseInNs();
+	double GetReportedTimebaseInNs() const { return timebase_reported_by_osciloscope; };
 
 	bool IsTriggered() const { return is_triggered; };
 	void SetTimebaseInPicoscope(); // sends the information to picoscope
@@ -89,12 +91,14 @@ public:
 	void AddSimpleTrigger(Channel *, double, double);
 	void SetTrigger(Trigger *);
 
-	void AddSignalGeneratorSquare(PICO_VOLTAGE, float);
+	void AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvolts, float frequency);
+	void InitializeSignalGenerator();
 
 private:
 	Picoscope         *picoscope;
 	Trigger           *trigger;
 	unsigned long      timebase;
+	double             timebase_reported_by_osciloscope;
 	unsigned long      length;
 	unsigned long      ntraces;
 	unsigned long      length_fetched;
@@ -107,6 +111,10 @@ private:
 	unsigned long      number_of_points_to_write;
 
 	bool is_triggered;
+	bool use_signal_generator;
+
+	unsigned long signal_generator_peak_to_peak_in_microvolts;
+	float         signal_generator_frequency;
 
 	Channel *channels[PICOSCOPE_N_CHANNELS];
 	short *data[PICOSCOPE_N_CHANNELS];

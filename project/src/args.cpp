@@ -2,6 +2,8 @@
 #include "measurement.h"
 #include "trigger.h"
 
+#include "ps6000Api.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -24,20 +26,33 @@ int lookup_table(const struct gen_table *tbl, const char *opt)
 
 Args::Args()
 {
+	int i;
+
 	SetLength(0);
 	SetVoltage(U_MAX);
 	ntraces          = 1;
 	filename         = NULL;
-	filename_binary  = NULL;
+	filename_meta    = NULL;
 	is_just_help     = false;
 	is_binary_output = false;
 	is_text_output   = false;
+
+	for(i=0; i<5; i++) {
+		filename_binary[i] = NULL;
+		filename_text[i]   = NULL;
+	}
 }
 
 Args::~Args()
 {
-	if(filename        != NULL) free(filename);
-	if(filename_binary != NULL) free(filename_binary);
+	int i;
+
+	if(filename      != NULL) free(filename);
+	if(filename_meta != NULL) free(filename_meta);
+	for(i=0; i<5; i++) {
+		if(filename_binary[i] != NULL) free(filename_binary[i]);
+		if(filename_text[i]   != NULL) free(filename_text[i]  );
+	}
 }
 
 void Args::PrintUsage()
@@ -49,9 +64,14 @@ void Args::PrintUsage()
 	std::cout << "    --U <str> | --voltage <str>        # voltage range\n";
 	std::cout << "      allowed values: 50mV, 100mV, 200mV, 500mV, 1V, 2V, 5V, 10V, 20V\n";
 	std::cout << "\n";
+	std::cout << "    --ch <str> | --channel <str>       # list of channels, for example: acd\n";
+	std::cout << "    --dt (<number>ns | <number>ps)     # sampling rate\n";
 	std::cout << "    --bin | --binary                   # save <name>.bin in binary format\n";
 	std::cout << "    --dat | --text                     # save <name>.dat in text format\n";
 //	std::cout << "    --ch <str> | --channel <str>       # list of channels, example: acd\n";
+	std::cout << "\n";
+	std::cout << "  only for signal generator:\n";
+	std::cout << "    --square <voltage:float>(V|mV) <frequency:float>\n";
 	std::cout << "\n";
 	std::cout << "  only for triggered events:\n";
 	std::cout << "    --trig <x> <y> | --trigger <x> <y> # real number for x and y\n";
@@ -61,10 +81,12 @@ void Args::PrintUsage()
 	std::cout << "    --n <number>                       # number of traces\n";
 }
 
-void Args::parse_options(int argc, char** argv)
+void Args::parse_options(int argc, char** argv, Measurement *m)
 {
 	int i;
 	unsigned long ul;
+
+	measurement = m;
 
 	if(argc==1) {
 		is_just_help = true;
@@ -97,15 +119,22 @@ void Args::parse_options(int argc, char** argv)
 			case PICO_ARG_NTRACES:
 				ParseAndSetNTraces(argv[++i]);
 				break;
+			case PICO_ARG_CHANNEL:
+				ParseAndSetChannels(argv[++i]);
+				break;
 			case PICO_ARG_VOLTAGE:
 				// fprintf(stderr, "  (voltage recognized in '%s' '%s')\n", argv[i], argv[i+1]);
 				ParseAndSetVoltage(argv[++i]);
+				break;
+			case PICO_ARG_RATE:
+				ParseAndSetRate(argv[++i]);
 				break;
 			case PICO_ARG_TRIGGER:
 				ParseAndSetTrigger(argv[i+1], argv[i+2]);
 				i+=2;
 				break;
 			case PICO_ARG_SIGNAL_SQUARE:
+				ParseAndSetSquareSignalGenerator(argv[i+1],argv[i+2]);
 				// ParseAndSetSignalGeneratorVoltage(argv[i+1]);
 				// ParseAndSetSignalGeneratorTime(argv[i+2]);
 				i+=2;
@@ -129,23 +158,38 @@ void Args::parse_options(int argc, char** argv)
 
 void Args::SetFilename(char *name)
 {
-	if(filename        != NULL) free(filename);
-	if(filename_binary != NULL) free(filename_binary);
-	if(filename_text   != NULL) free(filename_text);
-	if(filename_meta   != NULL) free(filename_meta);
+	int i;
+
+	if(filename      != NULL) free(filename);
+	if(filename_meta != NULL) free(filename_meta);
 
 	filename        = (char *)malloc(strlen(name)+1);
-	filename_binary = (char *)malloc(strlen(name)+4);
-	filename_text   = (char *)malloc(strlen(name)+4);
 	filename_meta   = (char *)malloc(strlen(name)+4);
 
-	if((filename != NULL) && (filename_binary != NULL) && (filename_text != NULL) && (filename_meta != NULL)) {
-		strcpy(filename, name);
-		sprintf(filename_binary, "%s.bin", filename);
-		sprintf(filename_text,   "%s.dat", filename);
+	for(i=0; i<5; i++) {
+		if(filename_binary[i] != NULL) free(filename_binary[i]);
+		if(filename_text[i]   != NULL) free(filename_text[i]  );
+
+		filename_binary[i] = (char *)malloc(strlen(name)+5);
+		filename_text[i]   = (char *)malloc(strlen(name)+5);
+	}
+
+	if((filename != NULL) && (filename_meta != NULL)) {
+		strcpy (filename, name);
 		sprintf(filename_meta,   "%s.txt", filename);
+		sprintf(filename_binary[4], "%s.bin", filename);
+		sprintf(filename_text[4],   "%s.dat", filename);
 	} else {
 		throw("Unable to allocate memory.\n");
+	}
+
+	for(i=0; i<4; i++) {
+		if((filename_binary[i] != NULL) && (filename_text[i] != NULL)) {
+			sprintf(filename_binary[i], "%s%c.bin", filename, 'A'+i);
+			sprintf(filename_text[i],   "%s%c.dat", filename, 'A'+i);
+		} else {
+			throw("Unable to allocate memory.\n");
+		}
 	}
 }
 
@@ -165,6 +209,54 @@ PICO_VOLTAGE Args::ParseVoltage(char *str)
 	else {
 		fprintf(stderr, "WARNING: unknown voltage '%s'\n", str);
 		return U_MAX;
+	}
+}
+
+void Args::ParseAndSetChannels(char *str)
+{
+	int i, c_i, n_channels;
+	char c;
+	bool channel_enabled[PICOSCOPE_N_CHANNELS];
+
+	for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+		channel_enabled[i] = false;
+	}
+	
+	for(i=0; i<strlen(str); i++) {
+		c = str[i];
+		// convert character into number
+		if(c>='A' && c<='A'+PICOSCOPE_N_CHANNELS) {
+			c_i = c-'A';
+		} else if(c>='a' && c<='a'+PICOSCOPE_N_CHANNELS) {
+			c_i = c-'a';
+		} else {
+			fprintf(stderr, "invalid channel '%c'\n", c);
+			// return -1;
+		}
+		// make sure that channel has not been enabled yet (though this should not matter much)
+		if(channel_enabled[c_i] == true) {
+			fprintf(stderr, "channel '%c' requested more than once\n", c);
+			// return -1;
+		// } else {
+		}
+		channel_enabled[c_i] = true;
+		// }
+	}
+
+	n_channels = 0;
+	for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+		if(channel_enabled[i]) {
+			n_channels++;
+		}
+	}
+	if(n_channels>0) {
+		GetMeasurement()->EnableChannels(
+			channel_enabled[0],
+			channel_enabled[1],
+			channel_enabled[2],
+			channel_enabled[3]);
+	} else {
+		fprintf(stderr, "error parsing channels: no valid channel, won't set anything\n", c);
 	}
 }
 
@@ -191,6 +283,28 @@ double Args::GetVoltageDouble()
 	return 0;
 }
 
+void Args::ParseAndSetRate(char *str)
+{
+	long number;
+	char unit[20];
+
+	sscanf(str, "%d%s", &number, unit);
+	if(strcmp(unit,"ps")==0) {
+		if(number>=200) {
+			GetMeasurement()->SetTimebaseInPs((unsigned long)number);
+		} else {
+			throw "You cannot use less than 200ps.";
+		}
+	} else if(strcmp(unit,"ns")==0) {
+		if(number>0) {
+			GetMeasurement()->SetTimebaseInNs((unsigned long)number);
+		} else {
+			throw "You cannot use less than 1ns (use ps instead).";
+		}
+	} else {
+		throw "You can only use <number>ps or <number>ns for sampling rate --dt.";
+	}
+}
 
 // void Args::ParseAndSetSignalGeneratorVoltage(char *str)
 // {
@@ -272,4 +386,33 @@ Trigger* Args::GetTrigger(Channel *ch)
 void Args::SetLength(unsigned long l)
 {
 	length = l;
+}
+
+void Args::ParseAndSetSquareSignalGenerator(char *str_voltage, char *str_freq)
+{
+	double voltage, frequency;
+	unsigned long peak_to_peak_in_microvolts;
+
+	char unit[20];
+	sscanf(str_voltage, "%lf%s", &voltage, unit);
+	sscanf(str_freq, "%lf", &frequency);
+
+	if(strcmp(unit,"V")==0) {
+		peak_to_peak_in_microvolts = (unsigned long)round(voltage*1e6);
+	} else if(strcmp(unit,"mV")==0) {
+		peak_to_peak_in_microvolts = (unsigned long)round(voltage*1e3);
+	} else {
+		std::cerr << "Invalid unit for voltage (" << unit << "). Use \"V\" or \"mV\".\n";
+		throw;
+	}
+	if(frequency < PS6000_MIN_FREQUENCY) {
+		std::cerr << "Frequency for signal generator too low. It should be at least " << PS6000_MIN_FREQUENCY << " Hz.\n";
+		throw;
+	}
+	if(frequency > PS6000_SQUARE_MAX_FREQUENCY) {
+		std::cerr << "Frequency for signal generator too high. It should be at most " << PS6000_SQUARE_MAX_FREQUENCY << " Hz.\n";
+		throw;
+	}
+
+	GetMeasurement()->AddSignalGeneratorSquare(peak_to_peak_in_microvolts, (float)frequency);
 }
