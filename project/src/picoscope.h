@@ -73,7 +73,7 @@ public:
 	/* temporary: remove after testing is done */
 	void do_something_nasty();
 	void DoSomething(unsigned long trace_length);
-	short** Picoscope::GetData();
+	short** GetData();
 	void MyFunction(unsigned long trace_length);
 	// in theory this should be configurable, but we have all picoscopes with 4 channels
 	int GetNumberOfChannels() const { return PICOSCOPE_N_CHANNELS; };

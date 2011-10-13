@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <conio.h>
+#include <stdio.h>
 #include "windows.h"
 #include "picoscope.h"
 

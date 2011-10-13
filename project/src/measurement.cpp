@@ -1,5 +1,7 @@
 #include <iostream>
 #include <conio.h>
+#include <assert.h>
+#include <stdio.h>
 #include "windows.h"
 #include "math.h"
 
