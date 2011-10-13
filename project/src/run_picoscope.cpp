@@ -96,7 +96,8 @@ int main(int argc, char** argv)
 
 		if(x.GetNTraces() > 1) {
 			meas->SetNTraces(x.GetNTraces());
-			// meas->SetTrigger(x.GetTrigger(a));
+			// TODO: fix trigger
+			meas->SetTrigger(x.GetTrigger(ch[0]));
 			meas->AllocateMemoryRapidBlock(MEGA(200));
 			// meas->AllocateMemoryRapidBlock(20000);
 		} else {
@@ -157,8 +158,8 @@ int main(int argc, char** argv)
 			fprintf(f, "range:     %g V\n", x.GetVoltageDouble());
 			fprintf(f, "unit_x:    %.1lf ns | %.1lf ns\n", meas->GetTimebaseInNs(), meas->GetReportedTimebaseInNs());
 			fprintf(f, "unit_y:    %.6le V\n", x.GetVoltageDouble()*3.0517578125e-5);
-			fprintf(f, "out_bin:   %s\n", x.IsTextOutput() ? "yes" : "no");
-			fprintf(f, "out_dat:   %s\n", x.IsBinaryOutput() ? "yes" : "no");
+			fprintf(f, "out_bin:   %s\n", x.IsBinaryOutput() ? "yes" : "no");
+			fprintf(f, "out_dat:   %s\n", x.IsTextOutput()   ? "yes" : "no");
 			
 			fclose(f);
 
