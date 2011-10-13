@@ -1,2 +1,5 @@
+http://downloads.picotech.com/drivers/PS6000sdk_r10_1_1_1.zip
+http://downloads.picotech.com/drivers/PS4000sdk_r10_1_2_1.zip
+
 http://downloads.picotech.com/drivers/PS6000sdk_r10_1_0_8.zip
 http://downloads.picotech.com/drivers/PS4000sdk_r10_1_0_8.zip

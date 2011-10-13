@@ -30,6 +30,7 @@
 *
 *	Hisotry
 *		Jun 2010:	RPM Modified to include PicoScope 4226 and 4227
+*		Aug 2011:	CPY Modified to include PicoScope 4262
 *
 ***************************************************************************/
 
@@ -132,7 +133,8 @@ typedef enum
 	MODEL_PS4423 = 4423,
 	MODEL_PS4424 = 4424,
 	MODEL_PS4226 = 4226, 
-	MODEL_PS4227 = 4227
+	MODEL_PS4227 = 4227,
+	MODEL_PS4262 = 4262
 } MODEL_TYPE;
 
 typedef struct tTriggerDirections
@@ -295,7 +297,7 @@ int RapidBlockDataHandler(UNIT_MODEL * unit, char * text, int offset)
 	int i, j;
 	long timeInterval;
 	unsigned long sampleCount = 50000;
-	FILE * fp;
+	FILE * fp = NULL;
 	long maxSamples;
 	short * buffers[PS4000_MAX_CHANNEL_BUFFERS * 2];
 	long timeIndisposed;
@@ -431,7 +433,7 @@ int No_Agg_RapidBlockDataHandler(UNIT_MODEL * unit, char * text, int offset)
 	int i, j;
 	long timeInterval;
 	long sampleCount = 50000;
-	FILE * fp;
+	FILE * fp = NULL;
 	long maxSamples;
 	short * buffers[PS4000_MAX_CHANNEL_BUFFERS][SEGMEM];
 	short overflow[SEGMEM] = {1,1,1,1,1,1,1,1,1,1};
@@ -581,7 +583,7 @@ void BlockDataHandler(UNIT_MODEL * unit, char * text, int offset)
 	int i, j;
 	long timeInterval;
 	long sampleCount= BUFFER_SIZE;
-	FILE * fp;
+	FILE * fp = NULL;
 	long maxSamples;
 	short * buffers[PS4000_MAX_CHANNEL_BUFFERS * 2];
 	long timeIndisposed;
@@ -683,7 +685,7 @@ void StreamDataHandler(UNIT_MODEL * unit, unsigned long preTrigger)
 {
 	long i, j;
 	unsigned long sampleCount= BUFFER_SIZE * 10; /*  *10 is to make sure buffer large enough */
-	FILE * fp;
+	FILE * fp = NULL;
 	short * buffers[PS4000_MAX_CHANNEL_BUFFERS];
 	PICO_STATUS status;
 	unsigned long sampleInterval = 1;
@@ -1050,56 +1052,65 @@ void get_info(UNIT_MODEL * unit)
 	switch (variant) 
 	{
 	case MODEL_PS4223:
-		unit->model						= MODEL_PS4223;
-		unit->signalGenerator = FALSE;
-		unit->ETS							= FALSE;
-		unit->firstRange			= PS4000_50MV;
-		unit->lastRange				= PS4000_100V;
+		unit->model				= MODEL_PS4223;
+		unit->signalGenerator	= FALSE;
+		unit->ETS				= FALSE;
+		unit->firstRange		= PS4000_50MV;
+		unit->lastRange			= PS4000_100V;
 		unit->ChannelCount		= DUAL_SCOPE;
 		break;
 
 	case MODEL_PS4224:
-		unit->model						= MODEL_PS4224;
-		unit->signalGenerator = FALSE;
-		unit->ETS							= FALSE;
-		unit->firstRange			= PS4000_50MV;
-		unit->lastRange				= PS4000_20V;
+		unit->model				= MODEL_PS4224;
+		unit->signalGenerator	= FALSE;
+		unit->ETS				= FALSE;
+		unit->firstRange		= PS4000_50MV;
+		unit->lastRange			= PS4000_20V;
 		unit->ChannelCount		= DUAL_SCOPE;
 		break;
 
 	case MODEL_PS4423:
-		unit->model						= MODEL_PS4423;
-		unit->signalGenerator = FALSE;
-		unit->ETS							= FALSE;
-		unit->firstRange			= PS4000_50MV;
-		unit->lastRange				= PS4000_100V;
+		unit->model				= MODEL_PS4423;
+		unit->signalGenerator	= FALSE;
+		unit->ETS				= FALSE;
+		unit->firstRange		= PS4000_50MV;
+		unit->lastRange			= PS4000_100V;
 		unit->ChannelCount		= QUAD_SCOPE;
 		break;
 
 	case MODEL_PS4424:
-		unit->model						= MODEL_PS4424;
-		unit->signalGenerator = FALSE;
-		unit->ETS							= FALSE;
-		unit->firstRange			= PS4000_50MV;
-		unit->lastRange				= PS4000_20V;
+		unit->model				= MODEL_PS4424;
+		unit->signalGenerator	= FALSE;
+		unit->ETS				= FALSE;
+		unit->firstRange		= PS4000_50MV;
+		unit->lastRange			= PS4000_20V;
 		unit->ChannelCount		= QUAD_SCOPE;
 		break;
 
 	case MODEL_PS4226:
-		unit->model						= MODEL_PS4226;
-		unit->signalGenerator = TRUE;
-		unit->ETS							= TRUE;
-		unit->firstRange			= PS4000_50MV;
-		unit->lastRange				= PS4000_20V;
+		unit->model				= MODEL_PS4226;
+		unit->signalGenerator	= TRUE;
+		unit->ETS				= TRUE;
+		unit->firstRange		= PS4000_50MV;
+		unit->lastRange			= PS4000_20V;
 		unit->ChannelCount		= DUAL_SCOPE;
 		break;
 
 	case MODEL_PS4227:
-		unit->model						= MODEL_PS4227;
-		unit->signalGenerator = TRUE;
-		unit->ETS							= TRUE;
-		unit->firstRange			= PS4000_50MV;
-		unit->lastRange				= PS4000_20V;
+		unit->model				= MODEL_PS4227;
+		unit->signalGenerator	= TRUE;
+		unit->ETS				= TRUE;
+		unit->firstRange		= PS4000_50MV;
+		unit->lastRange			= PS4000_20V;
+		unit->ChannelCount		= DUAL_SCOPE;
+		break;
+
+	case MODEL_PS4262:
+		unit->model				= MODEL_PS4262;
+		unit->signalGenerator	= TRUE;
+		unit->ETS				= TRUE;
+		unit->firstRange		= PS4000_10MV;
+		unit->lastRange			= PS4000_20V;
 		unit->ChannelCount		= DUAL_SCOPE;
 		break;
 
@@ -1189,7 +1200,7 @@ void SetSignalGenerator(UNIT_MODEL unit)
 	short waveform;
 	long	frequency;
 	char	fileName [128];
-	FILE	* fp;
+	FILE	* fp = NULL;
 	short arbitraryWaveform [8192];
 	short waveformSize = 0;
 
@@ -1290,7 +1301,7 @@ void SetExtSignalGenerator(UNIT_MODEL unit)
 	PICO_STATUS status;
 	long frequency;
 	char fileName [128];
-	FILE * fp;
+	FILE * fp = NULL;
 	short arbitraryWaveform [8192];
 	short waveformSize = 0;
 

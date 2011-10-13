@@ -117,7 +117,8 @@ typedef enum enPS6000ExternalFrequency
 typedef enum	enPS6000BandwidthLimiter
 {
 	PS6000_BW_FULL,
-	PS6000_BW_20MHZ
+	PS6000_BW_20MHZ,
+	PS6000_BW_25MHZ
 } PS6000_BANDWIDTH_LIMITER;
 
 typedef enum enPS6000Channel
@@ -218,6 +219,16 @@ typedef enum enPS6000ExtraOperations
 	PS6000_WHITENOISE,
 	PS6000_PRBS // Pseudo-Random Bit Stream 
 } PS6000_EXTRA_OPERATIONS;
+
+
+typedef enum enPulseWidthType
+{
+	PW_TYPE_NONE,
+  PW_TYPE_LESS_THAN,
+	PW_TYPE_GREATER_THAN,
+	PW_TYPE_IN_RANGE,
+	PW_TYPE_OUT_OF_RANGE
+} PULSE_WIDTH_TYPE;
 
 #define PS6000_PRBS_MAX_FREQUENCY				20000000.f
 #define PS6000_SINE_MAX_FREQUENCY				20000000.f

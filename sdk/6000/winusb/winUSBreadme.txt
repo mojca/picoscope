@@ -1,5 +1,5 @@
 Before using the examples for USB devices, kernel 
-drivers must be installed. This is normaly performed 
+drivers must be installed. This is normally performed 
 by the PicoScope or PicoLog installer.
 
 In order to install kernel drivers manually run dpinst.exe

@@ -1,8 +1,8 @@
-;---------------------------------------------------------------;
+﻿;---------------------------------------------------------------;
 ; PICOWINUSB.INF
 ;	-Installs winusb support for Pico USB devices;
 ;
-; Copyright © 1995-2010, Pico Technology Ltd
+; Copyright © 1995-2011, Pico Technology Ltd
 ;
 ;	www.picotech.com	www.drdaq.com
 ; 
@@ -13,7 +13,7 @@ Signature = "$Windows NT$"
 Class = DataAcquisitionDevices
 ClassGuid = {745DD1A8-FCA4-4659-9DF2-954176705158}
 Provider = %Pico% 
-DriverVer=09/14/2010,2.0.2.4
+DriverVer=08/16/2011,2.0.3.5
 CatalogFile=picowinusb.cat
 
 ; ========== Manufacturer/Models sections =========== 
@@ -25,7 +25,12 @@ CatalogFile=picowinusb.cat
 %USB\VID_0CE9&PID_100C.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100C
 %USB\VID_0CE9&PID_100E.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100E
 %USB\VID_0CE9&PID_1011.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1011
-%USB\VID_0CE9&PID_100b.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100b
+%USB\VID_0CE9&PID_100B.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100B
+%USB\VID_0CE9&PID_1012.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1012
+%USB\VID_0CE9&PID_1013.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1013
+%USB\VID_0CE9&PID_1014.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1014
+%USB\VID_0CE9&PID_1015.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1015
+%USB\VID_0CE9&PID_1016.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1016
 
 [PicoDevices.NTamd64]
 %USB\VID_0CE9&PID_1000.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1000
@@ -35,12 +40,18 @@ CatalogFile=picowinusb.cat
 %USB\VID_0CE9&PID_1007.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1007
 %USB\VID_0CE9&PID_1008.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1008
 %USB\VID_0CE9&PID_1009.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1009
+%USB\VID_0CE9&PID_100A.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100A
+%USB\VID_0CE9&PID_100B.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100B
 %USB\VID_0CE9&PID_100C.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100C
 %USB\VID_0CE9&PID_100D.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100D
 %USB\VID_0CE9&PID_100E.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100E
 %USB\VID_0CE9&PID_100F.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100F
 %USB\VID_0CE9&PID_1011.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1011
-%USB\VID_0CE9&PID_100b.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_100b
+%USB\VID_0CE9&PID_1012.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1012
+%USB\VID_0CE9&PID_1013.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1013
+%USB\VID_0CE9&PID_1014.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1014
+%USB\VID_0CE9&PID_1015.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1015
+%USB\VID_0CE9&PID_1016.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1016
 
 
 [PicoDevices.NTIA64]
@@ -133,6 +144,11 @@ USB\VID_0CE9&PID_100D.DeviceDesc="Pico USB TC-08"
 USB\VID_0CE9&PID_100E.DeviceDesc="PicoScope 6000 series PC Oscilloscope"
 USB\VID_0CE9&PID_100F.DeviceDesc="PicoScope 4000 series PC Oscilloscope"
 USB\VID_0CE9&PID_1011.DeviceDesc="Pico USB PT-104"
+USB\VID_0CE9&PID_1012.DeviceDesc="PicoScope 3000 series PC Oscilloscope"
+USB\VID_0CE9&PID_1013.DeviceDesc="Pico Pulse Generator"
+USB\VID_0CE9&PID_1014.DeviceDesc="Pico USB DrDAQ"
+USB\VID_0CE9&PID_1015.DeviceDesc="PicoLog Current Monitoring"
+USB\VID_0CE9&PID_1016.DeviceDesc="PicoScope 2000 series PC Oscilloscope"
 
 WinUSB_SvcDesc="WinUSB driver"
 ClassName="Pico Technology Instruments"

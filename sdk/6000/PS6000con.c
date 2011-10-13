@@ -9,6 +9,10 @@
 * Description:
 *   This is a console mode program that demonstrates how to use the
 *   PicoScope 6000 series API.
+* 
+* History 
+* CPY   27/05/06 Vesion 1 Issue 2
+* Modified to add support for PS6404 & PS6407
 *
 * Examples:
 *    Collect a block of samples immediately
@@ -35,9 +39,20 @@
 
 #define PREF4 __stdcall
 
+#define VERSION		1
+#define ISSUE		2
+
 int cycles = 0;
 
 #define BUFFER_SIZE 	1024
+
+typedef enum {
+	MODEL_NONE = 0,
+	MODEL_PS6402 = 6402,
+	MODEL_PS6403 = 6403,
+	MODEL_PS6404 = 6404,
+	MODEL_PS6407 = 6407
+} MODEL_TYPE;
 
 typedef struct
 {
@@ -48,19 +63,19 @@ typedef struct
 
 typedef struct tTriggerDirections
 {
-	enum enThresholdDirection channelA;
-	enum enThresholdDirection channelB;
-	enum enThresholdDirection channelC;
-	enum enThresholdDirection channelD;
-	enum enThresholdDirection ext;
-	enum enThresholdDirection aux;
+	enum enPS6000ThresholdDirection channelA;
+	enum enPS6000ThresholdDirection channelB;
+	enum enPS6000ThresholdDirection channelC;
+	enum enPS6000ThresholdDirection channelD;
+	enum enPS6000ThresholdDirection ext;
+	enum enPS6000ThresholdDirection aux;
 }TRIGGER_DIRECTIONS;
 
 typedef struct tPwq
 {
 	struct tPS6000PwqConditions * conditions;
 	short nConditions;
-	enum enThresholdDirection direction;
+	enum enPS6000ThresholdDirection direction;
 	unsigned long lower;
 	unsigned long upper;
 	enum enPulseWidthType type;
@@ -69,6 +84,7 @@ typedef struct tPwq
 typedef struct
 {
 	short handle;
+	MODEL_TYPE model;
 	PS6000_RANGE			firstRange;
 	PS6000_RANGE			lastRange;
 	short							channelCount;
@@ -79,15 +95,18 @@ unsigned long timebase = 8;
 short       oversample = 1;
 int      scaleVoltages = TRUE;
 
-unsigned short inputRanges [PS6000_MAX_RANGES] = {	50,
-																										100,
-																										200,
-																										500,
-																										1000,
-																										2000,
-																										5000,
-																										10000,
-																										20000};
+unsigned short inputRanges [PS6000_MAX_RANGES] = {	10,
+													20,
+													50,
+													100,
+													200,
+													500,
+													1000,
+													2000,
+													5000,
+													10000,
+													20000,
+													50000};
 short     		g_ready = FALSE;
 long long 		g_times [PS6000_MAX_CHANNELS];
 short     		g_timeUnit;
@@ -187,11 +206,12 @@ void BlockDataHandler(UNIT * unit, char * text, int offset)
 	int i, j;
 	long timeInterval;
 	long sampleCount= BUFFER_SIZE;
-	FILE * fp;
+	FILE * fp=NULL;
 	long maxSamples;
 	short * buffers[PS6000_MAX_CHANNEL_BUFFERS];
 	long timeIndisposed;
 	PICO_STATUS status;
+
 
 	for (i = 0; i < unit->channelCount; i++) 
 	{
@@ -326,11 +346,12 @@ void StreamDataHandler(UNIT * unit, unsigned long preTrigger)
 															PS6000_US,
 															preTrigger, 
 															1000000 - preTrigger, 
-															FALSE,
-															//TRUE,
+															//FALSE,
+															TRUE,
 															1000,
 															PS6000_RATIO_MODE_AGGREGATE,
 															sampleCount);
+	printf("\nps6000RunStreaming status = 0x%x\n", status);
 
 	printf("Streaming data...Press a key to abort\n");
 
@@ -431,6 +452,7 @@ PICO_STATUS SetTrigger(	short handle,
 			printf("SetTrigger:ps6000SetTriggerChannelDirections ------ %d \n", status);
 			return status;
 	}
+
 
 	if ((status = ps6000SetTriggerDelay(handle, delay)) != PICO_OK) 
 	{
@@ -751,11 +773,11 @@ void CollectRapidBlock(UNIT * unit)
 void get_info(UNIT * unit)
 {
 	char description [6][25]= { "Driver Version",
-															"USB Version",
-															"Hardware Version",
-															"Variant Info",
-															"Serial",
-															"Error Code" };
+								"USB Version",
+								"Hardware Version",
+								"Variant Info",
+								"Serial",
+								"Error Code" };
 	short i, r = 0;
 	char line [80];
 	int variant;
@@ -772,9 +794,65 @@ void get_info(UNIT * unit)
 			}
 			printf("%s: %s\n", description[i], line);
 		}
-		unit->firstRange = PS6000_50MV;
-		unit->lastRange = PS6000_20V;
-		unit->channelCount = 4;
+
+
+		switch (variant)
+		{
+		case MODEL_PS6402:
+			unit->model		= MODEL_PS6402;
+			unit->firstRange = PS6000_50MV;
+			unit->lastRange = PS6000_20V;
+			unit->channelCount = 4;
+
+			for (i = 0; i < PS6000_MAX_CHANNELS; i++) 
+			{
+				unit->channelSettings[i].range = PS6000_5V;
+				unit->channelSettings[i].DCcoupled = PS6000_DC_1M;
+				unit->channelSettings[i].enabled = TRUE;
+			}
+		break;
+
+		case MODEL_PS6403:
+			unit->model		= MODEL_PS6403;
+			unit->firstRange = PS6000_50MV;
+			unit->lastRange = PS6000_20V;
+			unit->channelCount = 4;
+
+			for (i = 0; i < PS6000_MAX_CHANNELS; i++) 
+			{
+				unit->channelSettings[i].range = PS6000_5V;
+				unit->channelSettings[i].DCcoupled = PS6000_DC_1M;
+				unit->channelSettings[i].enabled = TRUE;
+			}
+		break;
+
+		case MODEL_PS6404:
+			unit->model		= MODEL_PS6404;
+			unit->firstRange = PS6000_50MV;
+			unit->lastRange = PS6000_20V;
+			unit->channelCount = 4;
+
+			for (i = 0; i < PS6000_MAX_CHANNELS; i++) 
+			{
+				unit->channelSettings[i].range = PS6000_5V;
+				unit->channelSettings[i].DCcoupled = PS6000_DC_1M;
+				unit->channelSettings[i].enabled = TRUE;
+			}
+		break;
+
+		case MODEL_PS6407:
+			unit->model		= MODEL_PS6407;
+			unit->firstRange = PS6000_100MV;
+			unit->lastRange = PS6000_100MV;
+			unit->channelCount = 4;
+
+			for (i = 0; i < PS6000_MAX_CHANNELS; i++) 
+			{
+				unit->channelSettings[i].range = PS6000_100MV;
+				unit->channelSettings[i].DCcoupled = PS6000_DC_50R;
+				unit->channelSettings[i].enabled = TRUE;
+			}
+		}
 	}
 }
 
@@ -826,13 +904,22 @@ void SetTimebase(UNIT unit)
 {
 	long timeInterval;
 	long maxSamples;
+	PICO_STATUS status;
 
-	printf("Specify timebase: ");
-	fflush(stdin);
-	scanf_s("%lud", &timebase);
+	do
+	{
+		printf("Specify timebase: ");
+		fflush(stdin);
+		scanf_s("%lud", &timebase);
 
-	ps6000GetTimebase(unit.handle, timebase, BUFFER_SIZE, &timeInterval, 1, &maxSamples, 0);
-	printf("Timebase %lud - %ld ns\n", timebase, timeInterval);
+		status = ps6000GetTimebase(unit.handle, timebase, BUFFER_SIZE, &timeInterval, 1, &maxSamples, 0);
+
+		if(status == PICO_INVALID_TIMEBASE)
+			printf("Invalid timebase\n\n");
+
+	} while (status == PICO_INVALID_TIMEBASE);
+
+	printf("Timebase %lu - %ld ns\n", timebase, timeInterval);
 	oversample = TRUE;
 }
 
@@ -966,10 +1053,11 @@ void CollectStreamingTriggered(UNIT * unit)
 	struct tPwq pulseWidth;
 	
 	struct tPS6000TriggerChannelProperties sourceDetails = {	triggerVoltage,
+																														256 * 10,
 																														triggerVoltage,
 																														256 * 10,
 																														PS6000_CHANNEL_A,
-																														PS6000_LEVEL };
+																														PS6000_LEVEL};
 	
 	struct tPS6000TriggerConditions conditions = {	PS6000_CONDITION_TRUE,
 																									PS6000_CONDITION_DONT_CARE,
@@ -1003,17 +1091,18 @@ void CollectStreamingTriggered(UNIT * unit)
 }
 
 
+
+
 int main(void)
 {
 	char ch;
-	int i;
 	PICO_STATUS status;
 	UNIT unit;
 	struct tPwq pulseWidth;
 	struct tTriggerDirections directions;
 
 	printf("PS6000 driver example program\n");
-	printf("Version 1.1\n\n");
+	printf("Version %d.%d\n\n", VERSION, ISSUE);
 	printf("\n\nOpening the device...\n");
 
 	status = ps6000OpenUnit(&(unit.handle), NULL);
@@ -1032,12 +1121,8 @@ int main(void)
 	get_info(&unit);
 	timebase = 1;
 
-	for (i = 0; i < PS6000_MAX_CHANNELS; i++) 
-	{
-		unit.channelSettings[i].enabled = TRUE;
-		unit.channelSettings[i].DCcoupled = TRUE;
-		unit.channelSettings[i].range = PS6000_5V;
-	}
+
+	
 
 	memset(&directions, 0, sizeof(struct tTriggerDirections));
 	memset(&pulseWidth, 0, sizeof(struct tPwq));
