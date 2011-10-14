@@ -350,6 +350,9 @@ typedef enum enRatioMode
 	RATIO_MODE_AVERAGE = 2
 } RATIO_MODE;
 
+#ifndef __PSX000API_enPulseWidthType_H__
+#define __PSX000API_enPulseWidthType_H__
+
 typedef enum enPulseWidthType
 {
 	PW_TYPE_NONE,
@@ -358,6 +361,8 @@ typedef enum enPulseWidthType
 	PW_TYPE_IN_RANGE,
 	PW_TYPE_OUT_OF_RANGE
 } PULSE_WIDTH_TYPE;
+
+#endif
 
 typedef enum enPs4000HoldOffType
 {

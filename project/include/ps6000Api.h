@@ -220,6 +220,8 @@ typedef enum enPS6000ExtraOperations
 	PS6000_PRBS // Pseudo-Random Bit Stream
 } PS6000_EXTRA_OPERATIONS;
 
+#ifndef __PSX000API_enPulseWidthType_H__
+#define __PSX000API_enPulseWidthType_H__
 
 typedef enum enPulseWidthType
 {
@@ -229,6 +231,8 @@ typedef enum enPulseWidthType
 	PW_TYPE_IN_RANGE,
 	PW_TYPE_OUT_OF_RANGE
 } PULSE_WIDTH_TYPE;
+
+#endif
 
 #define PS6000_PRBS_MAX_FREQUENCY      20000000.f
 #define PS6000_SINE_MAX_FREQUENCY      20000000.f
