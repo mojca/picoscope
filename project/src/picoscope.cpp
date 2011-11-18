@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "windows.h"
 #include "picoscope.h"
+#include "log.h"
 
 #include "ps4000Api.h"
 #include "ps6000Api.h"
@@ -68,11 +69,15 @@ PICO_STATUS Picoscope::Open() {
 	} else {
 		// finally: open the unit
 		if(GetSeries() == PICO_4000) {
-			std::cerr << "Open Picoscope 4000 ... ";
+			FILE_LOG(logINFO) << "Open Picoscope 4000 ...";
+			// std::cerr << "Open Picoscope 4000 ... ";
 			return_status = ps4000OpenUnit(&handle);
 		} else {
-			std::cerr << "Open Picoscope 6000 ... ";
+			FILE_LOG(logINFO) << "Open Picoscope 6000 ...";
+			FILE_LOG(logDEBUG2) << "ps6000OpenUnit(&handle, serial=NULL)";
+			// std::cerr << "Open Picoscope 6000 ... ";
 			return_status = ps6000OpenUnit(&handle, NULL);
+			FILE_LOG(logDEBUG2) << "-> handle=" << handle;
 		}
 	}
 
@@ -96,7 +101,8 @@ PICO_STATUS Picoscope::Open() {
 
 PICO_STATUS Picoscope::Close()
 {
-	std::cerr << "Close Picoscope ... ";
+	FILE_LOG(logINFO) << "Close Picoscope ...";
+	// std::cerr << "Close Picoscope ... ";
 
 	// previous operation has failed: do we really want to try to proceed? (maybe we could remove this statement)
 	if(return_status != PICO_OK) {
@@ -457,7 +463,7 @@ const char* Picoscope::PicoscopeException::GetVerboseErrorMessage() const
 		case PICO_AUTO_TRIGGER_TIME_TO_SHORT     : return "PICO_AUTO_TRIGGER_TIME_TO_SHORT"      ;
 		case PICO_BUFFER_STALL                   : return "PICO_BUFFER_STALL"                    ;
 		case PICO_TOO_MANY_SAMPLES               : return "PICO_TOO_MANY_SAMPLES"                ;
-		case PICO_TOO_MANY_SEGMENTS              : return "PICO_TOO_MANY_SEGMENTS"               ;
+		case PICO_TOO_MANY_SEGMENTS              : return "Not possible to create number of segments requested.";
 		case PICO_PULSE_WIDTH_QUALIFIER          : return "PICO_PULSE_WIDTH_QUALIFIER"           ;
 		case PICO_DELAY                          : return "PICO_DELAY"                           ;
 		case PICO_SOURCE_DETAILS                 : return "PICO_SOURCE_DETAILS"                  ;

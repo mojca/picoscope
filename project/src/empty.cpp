@@ -6,6 +6,8 @@
 #include "ps6000Api.h"
 // #include "picoStatus.h"
 
+#include "log.h"
+
 #include <conio.h>
 // #include <stdio.h>
 
@@ -17,8 +19,8 @@ using namespace std;
 int main(int argc, char** argv)
 {
 	Args a;
-	a.parse_options(argc, argv);
-	return 0;
+	// a.parse_options(argc, argv);
+	// return 0;
 
 	try {
 		// short **data;
@@ -29,7 +31,7 @@ int main(int argc, char** argv)
 
 		cerr << "open\n";
 		pico.Open();
-		pico.MyFunction(400000000UL);
+		// pico.MyFunction(400000000UL);
 		cerr << "close\n";
 		pico.Close();
 		cerr << "end\n";

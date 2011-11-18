@@ -9,6 +9,7 @@
 #include "trigger.h"
 #include "args.h"
 
+#include "log.h"
 #include "timing.h"
 
 #include "ps4000Api.h"
@@ -38,6 +39,10 @@ int main(int argc, char** argv)
 	Timing t;
 	int i;
 
+	FILELog::ReportingLevel() = FILELog::FromString("DEBUG4");
+	// FILELog::ReportingLevel() = FILELog::(DEBUG1);
+	FILE_LOG(logDEBUG4) << "starting";
+
 	// #define XYMAX 4200000
 	// std::cerr << "test start\n";
 	// short *xy[4];
@@ -62,6 +67,7 @@ int main(int argc, char** argv)
 		meas->EnableChannels(true,false,false,false);
 		for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
 			ch[i] = meas->GetChannel(i);
+			FILE_LOG(logDEBUG4) << "main - Channel " << (char)('A'+i) << " has index " << ch[i]->GetIndex();
 		}
 
 		// std::cerr << "test w1\n";
@@ -97,7 +103,12 @@ int main(int argc, char** argv)
 		if(x.GetNTraces() > 1) {
 			meas->SetNTraces(x.GetNTraces());
 			// TODO: fix trigger
-			meas->SetTrigger(x.GetTrigger(ch[0]));
+			FILE_LOG(logDEBUG4) << "main - checking for triggered events";
+			if(x.IsTriggered()) {
+				for(i=0; i<PICOSCOPE_N_CHANNELS && !(ch[i]->IsEnabled()); i++);
+				FILE_LOG(logDEBUG4) << "main - will trigger on channel " << (char)('A'+i);
+				meas->SetTrigger(x.GetTrigger(ch[i]));
+			}
 			meas->AllocateMemoryRapidBlock(MEGA(200));
 			// meas->AllocateMemoryRapidBlock(20000);
 		} else {
@@ -135,6 +146,7 @@ int main(int argc, char** argv)
 			}
 
 			/************************************************************/
+			double tmp_dbl;
 			pico->Open();
 			meas->InitializeSignalGenerator();
 			meas->RunBlock();
@@ -144,6 +156,11 @@ int main(int argc, char** argv)
 			if(f == NULL) {
 				throw("Unable to open file with metadata.\n");
 			}
+			fprintf(f, "command:  ");
+			for(i=0; i<argc; i++) {
+				fprintf(f, " %s", argv[i]);
+			}
+			fprintf(f, "\n");
 			fprintf(f, "timestamp: %d-%02d-%02d %02d:%02d:%02d\n\n",
 				current->tm_year+1900, current->tm_mon+1, current->tm_mday,
 				current->tm_hour, current->tm_min, current->tm_sec);
@@ -155,9 +172,16 @@ int main(int argc, char** argv)
 			}
 			fprintf(f, "\n");
 			fprintf(f, "length:    %ld\n", x.GetLength());
-			fprintf(f, "range:     %g V\n", x.GetVoltageDouble());
-			fprintf(f, "unit_x:    %.1lf ns | %.1lf ns\n", meas->GetTimebaseInNs(), meas->GetReportedTimebaseInNs());
-			fprintf(f, "unit_y:    %.6le V\n", x.GetVoltageDouble()*3.0517578125e-5);
+			fprintf(f, "samples:   %ld\n", x.GetNTraces());
+			// fprintf(f, "unit_x:    %.1lf ns | %.1lf ns\n", meas->GetTimebaseInNs(), meas->GetReportedTimebaseInNs());
+			tmp_dbl = meas->GetTimebaseInNs();
+			fprintf(f, "unit_x:    %.1lf ns\n", tmp_dbl);
+			fprintf(f, "range_x:   %.1lf ns\n", x.GetLength()*tmp_dbl);
+			tmp_dbl = x.GetVoltageDouble();
+			fprintf(f, "unit_y:    %.6le V\n", tmp_dbl*3.0517578125e-5); // 2^(-15) since it goes from [-2^(15),2^(15)-1]
+			fprintf(f, "range_y:   %g V\n", tmp_dbl);
+			
+			// fprintf(f, "unit_x:    %.1lf ns | %.1lf ns\n", meas->GetTimebaseInNs(), meas->GetReportedTimebaseInNs());
 			fprintf(f, "out_bin:   %s\n", x.IsBinaryOutput() ? "yes" : "no");
 			fprintf(f, "out_dat:   %s\n", x.IsTextOutput()   ? "yes" : "no");
 			

@@ -1,6 +1,7 @@
 #include "args.h"
 #include "measurement.h"
 #include "trigger.h"
+#include "log.h"
 
 #include "ps6000Api.h"
 
@@ -222,7 +223,8 @@ void Args::ParseAndSetChannels(char *str)
 	for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
 		channel_enabled[i] = false;
 	}
-	
+
+	FILE_LOG(logDEBUG4) << "Args::ParseAndSetChannels - reading " << strlen(str) << " channel(s) from string '" << str << "'";
 	for(i=0; i<strlen(str); i++) {
 		c = str[i];
 		// convert character into number
@@ -241,6 +243,7 @@ void Args::ParseAndSetChannels(char *str)
 		// } else {
 		}
 		channel_enabled[c_i] = true;
+		FILE_LOG(logDEBUG4) << "Args::ParseAndSetChannels - enable channel " << c_i << " (" << (char)('A' + c_i) << ")";
 		// }
 	}
 

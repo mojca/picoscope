@@ -3,6 +3,7 @@
 #include "picoscope.h"
 #include "measurement.h"
 #include "channel.h"
+#include "log.h"
 
 #include "picoStatus.h"
 #include "ps4000Api.h"
@@ -11,6 +12,8 @@
 // channel constructor
 Channel::Channel(int i, Measurement* m)
 {
+	FILE_LOG(logDEBUG4) << "Channel::Channel(" << i << ", " << m << ")";
+
 	index = i;
 	measurement = m;
 	Disable();
@@ -78,6 +81,7 @@ void Channel::SetChannelInPicoscope()
 			(PS4000_RANGE)GetVoltage())); // range = voltage
 	// 6000
 	} else {
+		FILE_LOG(logDEBUG2) << "ps6000SetChannel(handle=" << GetHandle() << ", channel=" << GetIndex() << ", enabled=" << IsEnabled() << ", type=PS6000_DC_1M, range=" << GetVoltage() << ", analogueOffset=0.0, bandwidth=PS6000_BW_FULL)";
 		GetPicoscope()->SetStatus(ps6000SetChannel(
 			GetHandle(),                // handle
 			(PS6000_CHANNEL)GetIndex(), // channel
@@ -88,6 +92,8 @@ void Channel::SetChannelInPicoscope()
 			PS6000_BW_FULL));           // bandwidth
 	}
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
+		FILE_LOG(logERROR) << "Channel::SetChannelInPicoscope - Unable to setup the channel with index " << GetIndex() << "/" << index << " " <<  (char)('A'+GetIndex());
+
 		std::cerr << "Unable to setup the channel " << (char)('A'+GetIndex()) << std::endl;
 		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 	}

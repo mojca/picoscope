@@ -108,6 +108,7 @@ public:
 	void ParseAndSetNTraces(char *);
 	unsigned long GetNTraces() const { return ntraces; };
 
+	bool IsTriggered() const { return is_triggered; };
 	void ParseAndSetTrigger(char *, char *);
 	Trigger* GetTrigger(Channel *ch);
 

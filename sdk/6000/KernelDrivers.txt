@@ -1,1 +1,0 @@
-The PS6000 uses the winusb kernel driver, which can be found in the winusb folder. 

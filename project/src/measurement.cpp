@@ -9,6 +9,7 @@
 #include "measurement.h"
 #include "channel.h"
 #include "timing.h"
+#include "log.h"
 
 #include "picoStatus.h"
 #include "ps4000Api.h"
@@ -16,9 +17,12 @@
 
 Measurement::Measurement(Picoscope *p)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::Measurement (Picoscope=" << p << ")";
+
 	int i;
 
 	picoscope = p;
+	trigger = NULL;
 	is_triggered = false;
 	max_memory_consumption    = 0;
 	max_trace_length_to_fetch = 0;
@@ -29,6 +33,7 @@ Measurement::Measurement(Picoscope *p)
 
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		// initialize the channels
+		FILE_LOG(logDEBUG4) << "Measurement::Measurement - initialize channel nr. " << i;
 		channels[i]=new Channel(i, this);
 		data[i] = NULL;
 		data_allocated[i] = false;
@@ -40,6 +45,8 @@ Measurement::Measurement(Picoscope *p)
 
 Measurement::~Measurement()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::~Measurement";
+
 	int i;
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		// delete the channels
@@ -59,6 +66,8 @@ Measurement::~Measurement()
 // TODO: improve this; check for number of channels
 void Measurement::EnableChannels(bool a, bool b, bool c, bool d)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::EnableChannels (A=" << a << ",B=" << b << ",C=" << c << ",D=" << d << ")";
+
 	/*if(GetSeries() == PICO_4000) {
 		if(a) channels[PS4000_CHANNEL_A].Enable(); else channels[PS4000_CHANNEL_A].Disable();
 		if(b) channels[PS4000_CHANNEL_B].Enable(); else channels[PS4000_CHANNEL_B].Disable();
@@ -69,6 +78,8 @@ void Measurement::EnableChannels(bool a, bool b, bool c, bool d)
 	if(b) GetChannel(1)->Enable(); else GetChannel(1)->Disable();
 	if(c) GetChannel(2)->Enable(); else GetChannel(2)->Disable();
 	if(d) GetChannel(3)->Enable(); else GetChannel(3)->Disable();
+
+	FILE_LOG(logDEBUG4) << "Measurement::EnableChannels (A=" << GetChannel(0)->IsEnabled() << ",B=" << GetChannel(1)->IsEnabled() << ",C=" << GetChannel(2)->IsEnabled() << ",D=" << GetChannel(3)->IsEnabled() << ")";
 
 	// if memory constraint has been set, make sure that
 	if(GetMaxMemoryConsuption() != 0) {
@@ -85,6 +96,8 @@ void Measurement::EnableChannels(bool a, bool b, bool c, bool d)
 
 void Measurement::SetTimebaseInPs(unsigned long picoseconds)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetTimebaseInPs (ps=" << picoseconds << ")";
+
 	unsigned long i, result;
 
 	if(GetSeries() == PICO_6000) {
@@ -107,11 +120,15 @@ void Measurement::SetTimebaseInPs(unsigned long picoseconds)
 
 void Measurement::SetTimebaseInNs(unsigned long nanoseconds)
 {
+	FILE_LOG(logDEBUG3) << "Measurement:SetTimebaseInNs (nanoseconds=" << nanoseconds << ")";
+
 	SetTimebaseInPs(nanoseconds*1000UL);
 }
 
 double Measurement::GetTimebaseInNs()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::GetTimebaseInNs";
+
 	if(GetSeries() == PICO_6000) {
 		if(timebase<6) {
 			return 0.2*(1<<timebase);
@@ -127,6 +144,8 @@ double Measurement::GetTimebaseInNs()
 // when multiple channels are enabled we cannot have the highest sampling rate
 void Measurement::FixTimebase()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::FixTimebase";
+
 	int n = GetNumberOfEnabledChannels();
 	// when 3-4 channels are enabled, we need to set at least timebase=2 (4 times slower sampling)
 	if(n >= 3) {
@@ -150,6 +169,8 @@ void Measurement::FixTimebase()
 // this sets the timebase to picoscope
 void Measurement::SetTimebaseInPicoscope()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetTimebaseInPicoscope";
+
 	float time_interval_ns;
 
 	// 4000
@@ -164,6 +185,7 @@ void Measurement::SetTimebaseInPicoscope()
 			0));               // segmentIndex - the index of the memory segment to use
 	// 6000
 	} else {
+		FILE_LOG(logDEBUG2) << "ps6000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
 		GetPicoscope()->SetStatus(ps6000GetTimebase2(
 			GetHandle(),       // handle
 			GetTimebase(),     // timebase
@@ -172,6 +194,7 @@ void Measurement::SetTimebaseInPicoscope()
 			0,                 // oversample (TODO if needed)
 			NULL,              // maxSamples - the maximum number of samples available
 			0));               // segmentIndex - the index of the memory segment to use
+		FILE_LOG(logDEBUG2) << "-> time_interval_ns=" << time_interval_ns << " ns";
 	}
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
 		std::cerr << "Unable to set the requested timebase (" << GetTimebase()
@@ -185,17 +208,22 @@ void Measurement::SetTimebaseInPicoscope()
 
 void Measurement::SetLength(unsigned long l)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetLength (length=" << l << ")";
+
 	length = l;
 }
 
 void Measurement::SetNTraces(unsigned long n)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetNTraces (n=" << n << ")";
 	ntraces = n;
 }
 
 
 unsigned long Measurement::GetLengthBeforeTrigger()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::GetLengthBeforeTrigger";
+
 	double x_fraction;
 	if(IsTriggered()) {
 		x_fraction = GetTrigger()->GetXFraction();
@@ -214,6 +242,8 @@ unsigned long Measurement::GetLengthBeforeTrigger()
 }
 unsigned long Measurement::GetLengthAfterTrigger()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::GetLengthAfterTrigger";
+
 	if(IsTriggered()) {
 		return GetLength()-GetLengthBeforeTrigger();
 	} else {
@@ -225,14 +255,19 @@ unsigned long Measurement::GetLengthAfterTrigger()
 // and the maximum trace length to be read at once
 void Measurement::SetMaxMemoryConsumption(unsigned long bytes)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetMaxMemoryConsumption (bytes=" << bytes << ")";
+
 	int enabled_channels = GetNumberOfEnabledChannels();
+	FILE_LOG(logDEBUG4) << "Measurement::SetMaxMemoryConsumption - enabled_channels=" << enabled_channels;
 	unsigned long single_trace_bytes;
 
 	max_memory_consumption    = bytes;
 	if (enabled_channels > 0) {
 		max_trace_length_to_fetch = bytes/(sizeof(short)*enabled_channels);
+		FILE_LOG(logDEBUG4) << "Measurement::SetMaxMemoryConsumption - max_trace_length_to_fetch=" << max_trace_length_to_fetch;
 	} else {
 		max_trace_length_to_fetch = bytes/sizeof(short);
+		FILE_LOG(logDEBUG4) << "Measurement::SetMaxMemoryConsumption - max_trace_length_to_fetch=" << max_trace_length_to_fetch << " (no enabled channels)";
 	}
 	if(GetNTraces() > 1) {
 		single_trace_bytes = sizeof(short)*enabled_channels*GetLength();
@@ -240,6 +275,7 @@ void Measurement::SetMaxMemoryConsumption(unsigned long bytes)
 			max_traces_to_fetch = GetNTraces();
 		} else {
 			max_traces_to_fetch = (unsigned long)floor(max_memory_consumption/single_trace_bytes);
+			FILE_LOG(logDEBUG4) << "Measurement::SetMaxMemoryConsumption - max_traces_to_fetch=" << max_traces_to_fetch << " (above limit for max_memory_consumption=" << max_memory_consumption << ")";
 		}
 	}
 	assert(enabled_channels<=4);
@@ -247,6 +283,8 @@ void Measurement::SetMaxMemoryConsumption(unsigned long bytes)
 
 void Measurement::AllocateMemoryBlock(unsigned long bytes)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::AllocateMemoryBlock (bytes=" << bytes << ")";
+
 	int i;
 	unsigned long maxlen;
 
@@ -276,17 +314,21 @@ void Measurement::AllocateMemoryBlock(unsigned long bytes)
 					} else {
 						std::cerr << "Warning: Memory for channel " << (char)('A'+i) << " has already been allocated; changing size.\n";
 						delete [] data[i];
+						FILE_LOG(logDEBUG4) << "Measurement::AllocateMemoryBlock - data[" << i << "]" << maxlen;
 						data[i] = new short[maxlen];
 						data_allocated[i] = true;
 						data_length[i] = maxlen;
 					}
 				} else {
+					FILE_LOG(logDEBUG4) << "Measurement::AllocateMemoryBlock - data[" << i << "]" << maxlen;
+					
 					data[i] = new short[maxlen];
 					data_allocated[i] = true;
 					data_length[i] = maxlen;
 				}
 			}
 		}
+		FILE_LOG(logDEBUG4) << "!!!!!!!!!Measurement::AllocateMemoryBlock - maxlen=" << maxlen;
 		std::cerr << "OK\n";
 	} catch(...) {
 		std::cerr << "Unable to allocate memory in Measurement::AllocateMemoryBlock, tried to allocate " << bytes << "bytes." << std::endl;
@@ -296,6 +338,8 @@ void Measurement::AllocateMemoryBlock(unsigned long bytes)
 
 void Measurement::AllocateMemoryRapidBlock(unsigned long bytes)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::AllocateMemoryRapidBlock (bytes=" << bytes << ")";
+
 	int i;
 	unsigned long maxtraces, maxlen, memlen;
 
@@ -341,6 +385,7 @@ void Measurement::AllocateMemoryRapidBlock(unsigned long bytes)
 				}
 			}
 		}
+		FILE_LOG(logDEBUG4) << "!!!!!!!!!Measurement::AllocateMemoryBlock - maxlen=" << maxlen;
 		std::cerr << "OK\n";
 	} catch(...) {
 		std::cerr << "Unable to allocate memory in Measurement::AllocateMemoryBlock, tried to allocate " << bytes << "bytes." << std::endl;
@@ -350,11 +395,15 @@ void Measurement::AllocateMemoryRapidBlock(unsigned long bytes)
 
 int Measurement::GetNumberOfChannels() const
 {
+	// FILE_LOG(logDEBUG3) << "Measurement::GetNumberOfChannels";
+
 	return GetPicoscope()->GetNumberOfChannels();
 }
 
 int Measurement::GetNumberOfEnabledChannels()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::GetNumberOfEnabledChannels";
+
 	int i, enabled = 0;
 
 	for(i=0; i<4; i++) {
@@ -363,13 +412,18 @@ int Measurement::GetNumberOfEnabledChannels()
 		}
 	}
 
+	FILE_LOG(logDEBUG4) << "Measurement::GetNumberOfEnabledChannels - " << enabled << " (A=" << GetChannel(0)->IsEnabled() << ",B=" << GetChannel(1)->IsEnabled() << ",C=" << GetChannel(2)->IsEnabled() << ",D=" << GetChannel(3)->IsEnabled() << ")";
+
 	return enabled;
 }
 
 Channel* Measurement::GetChannel(int ch)
 {
+	// FILE_LOG(logDEBUG3) << "Measurement::GetChannel (channel=" << ch << ")";
+
 	int n = GetNumberOfChannels();
 	if(ch>=0 && ch<n) {
+		// FILE_LOG(logDEBUG4) << "Measurement::GetChannel -> channel " << (char)('A'+ch) << " - " << channels[ch] << ", index " << channels[ch]->GetIndex();
 		return channels[ch];
 	} else {
 		char message[200];
@@ -382,15 +436,19 @@ Channel* Measurement::GetChannel(int ch)
 
 void Measurement::RunBlock()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::RunBlock";
+
 	int i;
 	Timing t;
-	unsigned long max_length;
+	unsigned long max_length=0;
 
 	// we will have to start reading our data from beginning again
 	SetNextIndex(0);
 	// test if channel settings have already been passed to picoscope
 	// and only pass them again if that isn't the case
+	FILE_LOG(logDEBUG4) << "Measurement::RunBlock - we have " << GetNumberOfChannels() << " channels";
 	for(i=0; i<GetNumberOfChannels(); i++) {
+		FILE_LOG(logDEBUG4) << "Measurement::RunBlock - setting channel " << (char)('A'+i) << " (which holds index " << GetChannel(i)->GetIndex() << ")";
 		GetChannel(i)->SetChannelInPicoscope();
 	}
 	// this fixes the timebase if more than a single channel is selected
@@ -409,6 +467,27 @@ void Measurement::RunBlock()
 			throw("not yet implemented.\n");
 			// TODO
 		} else {
+			FILE_LOG(logDEBUG2) << "ps6000MemorySegments(handle=" << GetHandle() << ", nSegments=" << GetNTraces() << ", &max_length=" << max_length << ")";
+			GetPicoscope()->SetStatus(ps6000MemorySegments(
+				GetHandle(),   // handle
+				GetNTraces(),  // nSegments
+				&max_length));
+			FILE_LOG(logDEBUG2) << "->ps6000MemorySegments(... max_length=" << max_length << ")";
+		}
+		if(GetPicoscope()->GetStatus() != PICO_OK) {
+			std::cerr << "Unable to set number of segments to " << GetNTraces() << std::endl;
+			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+		}
+		if(max_length < GetLength()) { // TODO: times number of enabled channels
+			std::cerr << "The maximum length of trace you can get with " << GetNTraces()
+			          << " traces is " << max_length << ", but you requested " << GetLength() << "\n";
+			throw;
+		}
+		if(GetSeries() == PICO_4000) {
+			throw("not yet implemented.\n");
+			// TODO
+		} else {
+			FILE_LOG(logDEBUG2) << "ps6000SetNoOfCaptures(handle=" << GetHandle() << ", nCaptures=" << GetNTraces() << ")";
 			GetPicoscope()->SetStatus(ps6000SetNoOfCaptures(
 				GetHandle(),    // handle
 				GetNTraces())); // nCaptures
@@ -417,24 +496,6 @@ void Measurement::RunBlock()
 			std::cerr << "Unable to set number of captures to " << GetNTraces() << std::endl;
 			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 		}
-		if(GetSeries() == PICO_4000) {
-			throw("not yet implemented.\n");
-			// TODO
-		} else {
-			GetPicoscope()->SetStatus(ps6000MemorySegments(
-				GetHandle(),   // handle
-				GetNTraces(),  // nSegments
-				&max_length));
-		}
-		if(GetPicoscope()->GetStatus() != PICO_OK) {
-			std::cerr << "Unable to set number of segments to " << GetNTraces() << std::endl;
-			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
-		}
-		if(max_length < GetLength()) {
-			std::cerr << "The maximum length of trace you can get with " << GetNTraces()
-			          << " traces is " << max_length << ", but you requested " << GetLength() << "\n";
-			throw;
-		}
 	}
 
 	t.Start();
@@ -442,6 +503,7 @@ void Measurement::RunBlock()
 		throw("not yet implemented.\n");
 		// TODO
 	} else {
+		FILE_LOG(logDEBUG2) << "ps6000RunBlock(handle=" << GetHandle() << ", noOfPreTriggerSamples=" << GetLengthBeforeTrigger() << ", noOfPostTriggerSamples=" << GetLengthAfterTrigger() << ", timebase=" << timebase << ", oversample=1, *timeIndisposedMs=NULL, segmentIndex=0, lpReady=CallBackBlock, *pParameter=NULL)";
 		GetPicoscope()->SetStatus(ps6000RunBlock(
 			GetHandle(),              // handle
 			GetLengthBeforeTrigger(), // noOfPreTriggerSamples
@@ -479,6 +541,8 @@ void Measurement::RunBlock()
 //       unless we want to alternate between allocated memory (to enable parallel readouts)
 unsigned long Measurement::GetNextData()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::GetNextData";
+
 	int i;
 	short overflow=0;
 	unsigned long length_of_trace_askedfor, length_of_trace_fetched;
@@ -507,6 +571,7 @@ unsigned long Measurement::GetNextData()
 					data[i],                      // *buffer
 					GetMaxTraceLengthToFetch())); // bufferLength
 			} else {
+				FILE_LOG(logDEBUG2) << "ps6000SetDataBuffer(handle=" << GetHandle() << ", channel=" << i << ", *buffer=<data[i]>, bufferLength=" << GetMaxTraceLengthToFetch() << ", downSampleRatioMode=PS6000_RATIO_MODE_NONE)";
 				GetPicoscope()->SetStatus(ps6000SetDataBuffer(
 					GetHandle(),                // handle
 					(PS6000_CHANNEL)i,          // channel
@@ -529,6 +594,7 @@ unsigned long Measurement::GetNextData()
 		throw("not yet implemented.\n");
 		// TODO
 	} else {
+		FILE_LOG(logDEBUG2) << "ps6000GetValues(handle=" << GetHandle() << ", startIndex=" << GetNextIndex() << ", *noOfSamples=" << length_of_trace_fetched << ", downSampleRatio=1, downSampleRatioMode=PS6000_RATIO_MODE_NONE, segmentIndex=0, *overflow)";
 		GetPicoscope()->SetStatus(ps6000GetValues(
 			GetHandle(),                // handle
 			// TODO: start index
@@ -539,6 +605,8 @@ unsigned long Measurement::GetNextData()
 			PS6000_RATIO_MODE_NONE,     // downSampleRatioMode
 			0,                          // segmentIndex
 			&overflow));                // *overflow
+		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "ps6000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
+		
 	}
 	t.Stop();
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
@@ -564,6 +632,8 @@ unsigned long Measurement::GetNextData()
 
 unsigned long Measurement::GetNextDataBulk()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::GetNextDataBulk";
+
 	unsigned long i, j, index;
 	short *overflow;
 	unsigned long traces_asked_for, length_of_trace_fetched;
@@ -599,7 +669,9 @@ unsigned long Measurement::GetNextDataBulk()
 	// allocate buffers
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		if(GetChannel(i)->IsEnabled()) {
+			FILE_LOG(logDEBUG4) << "Measurement::GetNextDataBulk - memset data[i]" << GetLength()*traces_asked_for*sizeof(short);
 			memset(data[i], 0, GetLength()*traces_asked_for*sizeof(short));
+			FILE_LOG(logDEBUG4) << "done";
 		}
 		for(j=0; j<traces_asked_for; j++) {
 			index = j+GetNextIndex();
@@ -694,6 +766,8 @@ unsigned long Measurement::GetNextDataBulk()
 
 void Measurement::SetLengthFetched(unsigned long l)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetLengthFetched (length=" << l << ")";
+
 	length_fetched = l;
 }
 
@@ -749,12 +823,16 @@ void Measurement::WriteDataTxt(FILE *f, int channel)
 
 void Measurement::SetNextIndex(unsigned long index)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::SetNextIndex (index=" << index << ")";
+
 	// TODO: check that the index makes sense at all
 	next_index = index;
 }
 
 void Measurement::AddSimpleTrigger(Channel* ch, double x_frac, double y_frac)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::AddSimpleTrigger (channel=" << ch << ", x_frac=" << x_frac << ", y_frac=" << y_frac << ")";
+
 	is_triggered = true;
 	// TODO: must be improved for more fancy triggers
 //	if(trigger != NULL) delete trigger;
@@ -763,20 +841,29 @@ void Measurement::AddSimpleTrigger(Channel* ch, double x_frac, double y_frac)
 
 void Measurement::SetTrigger(Trigger *tr)
 {
+	// TODO: print out trigger
+	FILE_LOG(logDEBUG3) << "Measurement::SetTrigger (trigger=" << tr << ")";
+	FILE_LOG(logDEBUG4) << "Measurement::SetTrigger - previous values: trigger=" << trigger << ", is_triggered=" << is_triggered;
+
 	is_triggered = true;
 	// TODO: must be improved for more fancy triggers
 	if(trigger != NULL) delete trigger;
 	trigger = tr;
+	FILE_LOG(logDEBUG4) << "Measurement::SetTrigger - new values: trigger=" << trigger << ", is_triggered=" << is_triggered;
 }
 
 void Measurement::InitializeSignalGenerator()
 {
+	FILE_LOG(logDEBUG3) << "Measurement::InitializeSignalGenerator";
+
 	float frequency = signal_generator_frequency;
 
 	if(use_signal_generator == false) {
+		FILE_LOG(logDEBUG4) << "Measurement::InitializeSignalGenerator - skipped, no need for generator";
 		return;
 	}
 
+	FILE_LOG(logDEBUG4) << "Measurement::InitializeSignalGenerator";
 	if(frequency < PS6000_MIN_FREQUENCY || frequency > PS6000_SQUARE_MAX_FREQUENCY) {
 		std::cerr << "Frequency of signal generator (" << frequency << " Hz) is not valid" << std::endl;
 		throw;
@@ -811,6 +898,8 @@ void Measurement::InitializeSignalGenerator()
 
 void Measurement::AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvolts, float frequency)
 {
+	FILE_LOG(logDEBUG3) << "Measurement::AddSignalGeneratorSquare (peak_to_peak_in_microvolts=" << peak_to_peak_in_microvolts << ", frequency=" << frequency << ")";
+
 	use_signal_generator = true;
 
 	signal_generator_peak_to_peak_in_microvolts = peak_to_peak_in_microvolts;

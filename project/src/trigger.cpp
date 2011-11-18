@@ -4,6 +4,7 @@
 #include "trigger.h"
 #include "picoscope.h"
 #include "channel.h"
+#include "log.h"
 
 #include "picoStatus.h"
 #include "ps4000Api.h"
@@ -11,6 +12,8 @@
 
 Trigger::Trigger(Channel *ch, double x_fraction, double y_fraction)
 {
+	FILE_LOG(logDEBUG3) << "Trigger::Trigger (channel=" << ch << " (" << ch->GetIndex() << "), x_frac=" << x_fraction << ", y_frac=" << y_fraction << ")";
+
 	channel = ch;
 
 	if(channel == NULL) {
