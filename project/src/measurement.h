@@ -17,6 +17,9 @@
 #include "channel.h"
 #include "trigger.h"
 
+// TODO: get rid of this dependency
+#include "ps6000Api.h"
+
 // class Picoscope;
 // class Channel;
 class Trigger;
@@ -94,6 +97,9 @@ public:
 	void AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvolts, float frequency);
 	void InitializeSignalGenerator();
 
+	void SetRate(long n_events, long long t1, PS6000_TIME_UNITS time_unit1, long long t2, PS6000_TIME_UNITS time_unit2);
+	double GetRatePerSecond();
+
 private:
 	Picoscope         *picoscope;
 	Trigger           *trigger;
@@ -109,6 +115,8 @@ private:
 	unsigned long      max_traces_to_fetch;
 
 	unsigned long      number_of_points_to_write;
+
+	double             rate_per_second;
 
 	bool is_triggered;
 	bool use_signal_generator;

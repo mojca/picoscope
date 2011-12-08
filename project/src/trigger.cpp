@@ -41,6 +41,8 @@ Picoscope*   Trigger::GetPicoscope()   const { return GetMeasurement()->GetPicos
 PICO_SERIES  Trigger::GetSeries()      const { return GetPicoscope()->GetSeries(); };
 short        Trigger::GetHandle()      const { return GetPicoscope()->GetHandle(); };
 
+short        Trigger::GetThreshold()         { return (short)round(GetYFraction()*(double)PS6000_MAX_VALUE); };
+
 
 void Trigger::SetTriggerInPicoscope()
 {
@@ -54,7 +56,7 @@ void Trigger::SetTriggerInPicoscope()
 
 	// we will use just a single condition
 	if(GetSeries() == PICO_6000) {
-		threshold = (short)round(GetYFraction()*(double)PS6000_MAX_VALUE);
+		threshold = GetThreshold();
 		fprintf(stderr, "-- Setting trigger threshold to %d\n", threshold);
 
 		struct tPS6000TriggerConditions conditions6000 = {

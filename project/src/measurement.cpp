@@ -30,6 +30,7 @@ Measurement::Measurement(Picoscope *p)
 	max_traces_to_fetch = 1;
 	timebase_reported_by_osciloscope = 0.0;
 	use_signal_generator = false;
+	rate_per_second = 0.0;
 
 	for(i=0; i<GetNumberOfChannels(); i++) {
 		// initialize the channels
@@ -709,7 +710,7 @@ unsigned long Measurement::GetNextDataBulk()
 	}
 	// fetch data
 	// length_of_trace_fetched = length_of_trace_askedfor;
-	std::cerr << "Get data for traces " << GetNextIndex() << "-" << GetNextIndex()+traces_asked_for << " (" << 100.0*(GetNextIndex()+traces_asked_for)/GetNTraces() << "%) ... ";
+	std::cerr << "Get data for traces " << GetNextIndex() << "-" << GetNextIndex()+traces_asked_for << " (" << 100.0*(GetNextIndex()+traces_asked_for)/GetNTraces() << "%%) ... ";
 	overflow = new short[traces_asked_for];
 	memset(overflow, 0, traces_asked_for*sizeof(short));
 	// std::cerr << "-- x1\n";
@@ -741,7 +742,7 @@ unsigned long Measurement::GetNextDataBulk()
 	for(i=0; i<traces_asked_for; i++) {
 		for(j=0; i<GetNumberOfChannels(); i++) {
 			if(overflow[i] & (1<<j)) {
-				std::cerr << "Warning: Overflow on channel " << (char)('A'+i) << " of trace " << i+GetNextIndex() << ".\n";
+				FILE_LOG(logWARNING) << "Warning: Overflow on channel " << (char)('A'+j) << " of trace " << i+GetNextIndex() << ".\n";
 			}
 		}
 	}
@@ -749,6 +750,41 @@ unsigned long Measurement::GetNextDataBulk()
 	// if(length_of_trace_fetched != length_of_trace_askedfor) {
 	// 	std::cerr << "Warning: The number of read samples was smaller than requested.\n";
 	// }
+
+	// getting timestamps
+	long long *timestamps;
+	PS6000_TIME_UNITS *timeunits;
+
+	timestamps = new long long[traces_asked_for];
+	timeunits  = new PS6000_TIME_UNITS[traces_asked_for];
+
+	if(GetSeries() == PICO_4000) {
+		// NOT YET IMPLEMENTED
+	} else {
+		FILE_LOG(logDEBUG2) << "ps6000GetValuesTriggerTimeOffsetBulk64(handle=" << GetHandle() << ", *timestamps, *timeunits, fromSegmentIndex=" << GetNextIndex() << ", toSegmentIndex=" << GetNextIndex()+traces_asked_for-1 << ")";
+		GetPicoscope()->SetStatus(ps6000GetValuesTriggerTimeOffsetBulk64(
+			GetHandle(),                // handle
+			timestamps,                 // *times
+			timeunits,                  // *timeUnits
+			GetNextIndex(),                      // fromSegmentIndex
+			GetNextIndex()+traces_asked_for-1)); // toSegmentIndex
+	}
+	if(GetPicoscope()->GetStatus() != PICO_OK) {
+		std::cerr << "Unable to get timestamps." << std::endl;
+		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+	}
+
+	for(i=0; i<traces_asked_for; i++) {
+		std::cerr << "time " << i << ": " << timestamps[i] << "\n";
+	}
+	SetRate(traces_asked_for, timestamps[0], timeunits[0], timestamps[traces_asked_for-1], timeunits[traces_asked_for-1]);
+	if(timeunits[0] != timeunits[traces_asked_for-1]) {
+		FILE_LOG(logWARNING) << "time unit of the first and last sample differ; rate is not reliable; TIMING seems to be broken anyway";
+	}
+
+	delete [] timestamps;
+	delete [] timeunits;
+
 
 	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
 
@@ -906,3 +942,45 @@ void Measurement::AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvo
 	signal_generator_frequency = frequency;
 }
 
+// TODO: get rid of dependency on PS6000_TIME_UNITS in declaration
+// implementation may change
+void Measurement::SetRate(long n_events, long long t1, PS6000_TIME_UNITS time_unit1, long long t2, PS6000_TIME_UNITS time_unit2)
+{
+	FILE_LOG(logDEBUG3) << "Measurement::SetRate (n_events=" << n_events << ", ...)";
+	if(n_events < 2) {
+		rate_per_second = 0.0;
+		return;
+	}
+
+	double tt1 = t1, tt2 = t2;
+
+	// rate_per_second = (double)(n_events-1)/(double)dt;
+
+	switch(time_unit1) {
+		case PS6000_FS: tt1 *= 1e-15; FILE_LOG(logDEBUG4) << "t1=" << t1 << "fs"; break;
+		case PS6000_PS: tt1 *= 1e-12; FILE_LOG(logDEBUG4) << "t1=" << t1 << "ps"; break;
+		case PS6000_NS: tt1 *= 1e-9;  FILE_LOG(logDEBUG4) << "t1=" << t1 << "ns"; break;
+		case PS6000_US: tt1 *= 1e-6;  FILE_LOG(logDEBUG4) << "t1=" << t1 << "us"; break;
+		case PS6000_MS: tt1 *= 1e-3;  FILE_LOG(logDEBUG4) << "t1=" << t1 << "ms"; break;
+		case PS6000_S : tt1 *= 1;     FILE_LOG(logDEBUG4) << "t1=" << t1 << "s "; break;
+		default: FILE_LOG(logDEBUG4) << "t1=weird "; break;
+	};
+
+	switch(time_unit2) {
+		case PS6000_FS: tt2 *= 1e-15; FILE_LOG(logDEBUG4) << "t2=" << t2 << "fs"; break;
+		case PS6000_PS: tt2 *= 1e-12; FILE_LOG(logDEBUG4) << "t2=" << t2 << "ps"; break;
+		case PS6000_NS: tt2 *= 1e-9;  FILE_LOG(logDEBUG4) << "t2=" << t2 << "ns"; break;
+		case PS6000_US: tt2 *= 1e-6;  FILE_LOG(logDEBUG4) << "t2=" << t2 << "us"; break;
+		case PS6000_MS: tt2 *= 1e-3;  FILE_LOG(logDEBUG4) << "t2=" << t2 << "ms"; break;
+		case PS6000_S : tt2 *= 1;     FILE_LOG(logDEBUG4) << "t2=" << t2 << "s "; break;
+		default: FILE_LOG(logDEBUG4) << "t2=weird (" << t2 << ") "; break;
+	};
+
+	rate_per_second = (n_events-1)/(tt2 - tt1);
+}
+
+double Measurement::GetRatePerSecond()
+{
+	FILE_LOG(logDEBUG3) << "Measurement::GetRatePerSecond()";
+	return rate_per_second;
+}

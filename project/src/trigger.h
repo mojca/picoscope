@@ -27,6 +27,8 @@ public:
 
 	double GetXFraction() const { return x_frac; }
 	double GetYFraction() const { return y_frac; }
+
+	short  GetThreshold();
 private:
 	Channel *channel;
 	// Measurement *measurement;
