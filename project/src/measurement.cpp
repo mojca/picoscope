@@ -442,6 +442,7 @@ void Measurement::RunBlock()
 	int i;
 	Timing t;
 	unsigned long max_length=0;
+	long max_length_l=0;
 
 	// we will have to start reading our data from beginning again
 	SetNextIndex(0);
@@ -465,8 +466,13 @@ void Measurement::RunBlock()
 	if(GetNTraces() > 1) {
 		// TODO - check that GetLength()*GetNumberOfEnabledChannels()*GetNTraces() doesn't exceed the limit
 		if(GetSeries() == PICO_4000) {
-			throw("not yet implemented.\n");
-			// TODO
+			FILE_LOG(logDEBUG2) << "ps4000MemorySegments(handle=" << GetHandle() << ", nSegments=" << GetNTraces() << ", &max_length=" << max_length << ")";
+			GetPicoscope()->SetStatus(ps4000MemorySegments(
+				GetHandle(),   // handle
+				GetNTraces(),  // nSegments
+				&max_length_l));
+			max_length = max_length_l;
+			FILE_LOG(logDEBUG2) << "->ps4000MemorySegments(... max_length=" << max_length << ")";
 		} else {
 			FILE_LOG(logDEBUG2) << "ps6000MemorySegments(handle=" << GetHandle() << ", nSegments=" << GetNTraces() << ", &max_length=" << max_length << ")";
 			GetPicoscope()->SetStatus(ps6000MemorySegments(
@@ -592,8 +598,19 @@ unsigned long Measurement::GetNextData()
 	t.Start();
 	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
 	if(GetSeries() == PICO_4000) {
-		throw("not yet implemented.\n");
-		// TODO
+		FILE_LOG(logDEBUG2) << "ps4000GetValues(handle=" << GetHandle() << ", startIndex=" << GetNextIndex() << ", *noOfSamples=" << length_of_trace_fetched << ", downSampleRatio=1, downSampleRatioMode=PS4000_RATIO_MODE_NONE, segmentIndex=0, *overflow)";
+		GetPicoscope()->SetStatus(ps4000GetValues(
+			GetHandle(),                // handle
+			// TODO: start index
+			GetNextIndex(),             // startIndex
+			// this could also be min(GetMaxTraceLengthToFetch(),wholeLength-startindex)
+			&length_of_trace_fetched,   // *noOfSamples
+			1,                          // downSampleRatio
+			RATIO_MODE_NONE,            // downSampleRatioMode
+			0,                          // segmentIndex
+			&overflow));                // *overflow
+		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "ps4000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
+		
 	} else {
 		FILE_LOG(logDEBUG2) << "ps6000GetValues(handle=" << GetHandle() << ", startIndex=" << GetNextIndex() << ", *noOfSamples=" << length_of_trace_fetched << ", downSampleRatio=1, downSampleRatioMode=PS6000_RATIO_MODE_NONE, segmentIndex=0, *overflow)";
 		GetPicoscope()->SetStatus(ps6000GetValues(
@@ -681,12 +698,18 @@ unsigned long Measurement::GetNextDataBulk()
 					throw "Unable to get data. Memory is not allocated.";
 				}
 				if(GetSeries() == PICO_4000) {
-					throw "not yet implemented";
+					// throw "not yet implemented";
 					// GetPicoscope()->SetStatus(ps4000SetDataBufferBulk(
 					// 	GetHandle(),                  // handle
 					// 	(PS4000_CHANNEL)i,            // channel
 					// 	data[i],                      // *buffer
 					// 	GetMaxTraceLengthToFetch())); // bufferLength
+					GetPicoscope()->SetStatus(ps4000SetDataBufferBulk(
+						GetHandle(),                // handle
+						(PS4000_CHANNEL)i,          // channel
+						&data[i][j*GetLength()],    // *buffer
+						GetLength(),                // bufferLength
+						index));                    // waveform
 				} else {
 					// unsigned long dj = (j+GetNextIndex()/GetMaxTracesToFetch())%traces_asked_for;
 					// std::cerr << "-- (set data buffer bulk: [" << i << "][" << dj
@@ -717,8 +740,15 @@ unsigned long Measurement::GetNextDataBulk()
 	t.Start();
 	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
 	if(GetSeries() == PICO_4000) {
-		throw("not yet implemented.\n");
-		// TODO
+		length_of_trace_fetched = GetLength();
+		GetPicoscope()->SetStatus(ps4000GetValuesBulk(
+			GetHandle(),                // handle
+			&length_of_trace_fetched,   // *noOfSamples
+			// TODO: start index
+			GetNextIndex(),             // fromSegmentIndex
+			GetNextIndex()+traces_asked_for-1, // toSegmentIndex
+			// this could also be min(GetMaxTraceLengthToFetch(),wholeLength-startindex)
+			overflow));                // *overflow
 	} else {
 		// TODO: not sure about this ...
 		length_of_trace_fetched = GetLength();
