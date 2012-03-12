@@ -343,12 +343,12 @@ typedef struct tTriggerChannelProperties
 } TRIGGER_CHANNEL_PROPERTIES;
 #pragma pack()
 
-typedef enum enRatioMode
+typedef enum enPS4000RatioMode
 {
-	RATIO_MODE_NONE,
-	RATIO_MODE_AGGREGATE = 1,
-	RATIO_MODE_AVERAGE = 2
-} RATIO_MODE;
+	PS4000_RATIO_MODE_NONE,
+	PS4000_RATIO_MODE_AGGREGATE = 1,
+	PS4000_RATIO_MODE_AVERAGE = 2
+} PS4000_RATIO_MODE;
 
 #ifndef __PSX000API_enPulseWidthType_H__
 #define __PSX000API_enPulseWidthType_H__
@@ -467,7 +467,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000MemorySegments)
 	(
 		short                       handle,
 		unsigned short              nSegments,
-		long                      * nMaxSamples
+		unsigned long             * nMaxSamples
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetChannel)
@@ -731,7 +731,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBufferWithMode)
 		PS4000_CHANNEL         channel,
 		short                * buffer,
 		long                   bufferLth,
-		RATIO_MODE             mode
+		PS4000_RATIO_MODE      mode
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBuffersWithMode)
@@ -741,7 +741,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBuffersWithMode)
 		short                * bufferMax,
 		short                * bufferMin,
 		long                   bufferLth,
-		RATIO_MODE             mode
+		PS4000_RATIO_MODE      mode
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBuffer)
