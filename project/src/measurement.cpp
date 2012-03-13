@@ -970,7 +970,7 @@ void Measurement::InitializeSignalGenerator()
 		throw;
 	}
 	if(GetSeries() == PICO_4000) {
-		throw("not yet implemented:SetSigGenBuiltIn.\n");
+		throw("Not yet implemented: ps4000SetSigGenBuiltIn.\n");
 		// TODO
 	} else {
 		// throw("not yet implemented.\n");
