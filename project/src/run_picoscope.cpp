@@ -2,7 +2,15 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+
+#ifdef WIN32
 #include "windows.h"
+#include <conio.h>
+#else
+#include <sys/types.h>
+#include <string.h>
+#include "linux_utils.h"
+#endif
 
 #include "picoscope.h"
 #include "measurement.h"
@@ -17,7 +25,7 @@
 #include "ps6000Api.h"
 // #include "picoStatus.h"
 
-#include <conio.h>
+// #include <conio.h>
 // #include <stdio.h>
 
 // #include <sys/types.h>
@@ -41,15 +49,15 @@ int main(int argc, char** argv)
 	int i;
 
 	// TODO: debug should be enabled with a command-line option
-	// FILELog::ReportingLevel() = FILELog::FromString("DEBUG4");
+	FILELog::ReportingLevel() = FILELog::FromString("DEBUG4");
 	// FILELog::ReportingLevel() = FILELog::FromString("DEBUG1");
-	FILELog::ReportingLevel() = FILELog::FromString("INFO");
+	// FILELog::ReportingLevel() = FILELog::FromString("INFO");
 	FILE_LOG(logDEBUG4) << "starting";
 
 	t.Start();
 	try {
 
-		Picoscope4000 *pico = new Picoscope4000();
+		Picoscope6000 *pico = new Picoscope6000();
 		Measurement   *meas = new Measurement(pico);
 		Channel       *ch[4];
 
@@ -169,7 +177,7 @@ int main(int argc, char** argv)
 					fprintf(f, "trigger_ch: %c\n", (char)(meas->GetTrigger()->GetChannel()->GetIndex()+'A'));
 					// fprintf(f, "trigger_xfrac: %g\n", meas->GetTrigger()->GetXFraction());
 					// fprintf(f, "trigger_yfrac: %g\n", meas->GetTrigger()->GetYFraction());
-					fprintf(f, "trigger_dx: %d (%g %%  of  %ld)\n", meas->GetLengthBeforeTrigger(), meas->GetLengthBeforeTrigger()*100.0/x.GetLength(), x.GetLength());
+					fprintf(f, "trigger_dx: %ld (%g %%  of  %ld)\n", meas->GetLengthBeforeTrigger(), meas->GetLengthBeforeTrigger()*100.0/x.GetLength(), x.GetLength());
 					tmp_short =  meas->GetTrigger()->GetThreshold();
 					fprintf(f, "trigger_dy: %d (%g %%  or  %g V)\n", tmp_short, tmp_short*3.0517578125e-3, tmp_short*3.0517578125e-3*x.GetVoltageDouble());
 				}
@@ -240,8 +248,11 @@ int main(int argc, char** argv)
 			cerr << "Timing: " << t.GetSecondsDouble() << "s\n";
 		}
 
+		FILE_LOG(logDEBUG4) << "delete pico";
 		delete pico;
+		FILE_LOG(logDEBUG4) << "delete meas";
 		delete meas;
+		FILE_LOG(logDEBUG4) << "almost end the program";
 
 
 	} catch(Picoscope::PicoscopeException& ex) {

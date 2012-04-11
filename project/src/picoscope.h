@@ -34,7 +34,12 @@ typedef enum picoscopeVoltage
 #define PICOSCOPE_HANDLE_FAIL_TO_OPEN -1
 #define PICOSCOPE_HANDLE_NO_UNIT_FOUND 0
 
-#define CALLBACK __stdcall
+#ifdef WIN32
+	#define PREF4 __stdcall
+#else
+	#define PREF4
+#endif
+#define CALLBACK PREF4
 
 void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter);
 

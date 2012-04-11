@@ -1,10 +1,18 @@
 #include <iostream>
 #include <string>
-#include <conio.h>
 #include <stdio.h>
-#include "windows.h"
 #include "picoscope.h"
 #include "log.h"
+
+#ifdef WIN32
+#include "windows.h"
+#include <conio.h>
+#else
+#include <sys/types.h>
+#include <string.h>
+#include "linux_utils.h"
+#endif
+
 
 #include "ps4000Api.h"
 #include "ps6000Api.h"
@@ -71,8 +79,8 @@ PICO_STATUS Picoscope::Open() {
 		if(GetSeries() == PICO_4000) {
 			FILE_LOG(logINFO) << "Open Picoscope 4000 ...";
 			// std::cerr << "Open Picoscope 4000 ... ";
-			return_status = ps4000OpenUnit(&handle);
-		} else {
+/*			return_status = ps4000OpenUnit(&handle);
+*/		} else {
 			FILE_LOG(logINFO) << "Open Picoscope 6000 ...";
 			FILE_LOG(logDEBUG2) << "ps6000OpenUnit(&handle, serial=NULL)";
 			// std::cerr << "Open Picoscope 6000 ... ";
@@ -116,8 +124,9 @@ PICO_STATUS Picoscope::Close()
 	}
 
 	if(GetSeries() == PICO_4000) {
-		return_status = ps4000Stop(handle);
-	} else {
+/*		return_status = ps4000Stop(handle);
+*/	} else {
+		FILE_LOG(logDEBUG2) << "ps6000Stop(handle=" << GetHandle() << ")";
 		return_status = ps6000Stop(handle);
 	}
 
@@ -198,7 +207,7 @@ void Picoscope::MyFunction(unsigned long trace_length)
 	// std::cerr << "size of data(i):" << sizeof(data[i]) << std::endl;
 	// fprintf(stderr, "> setting data buffers\n");
 	// handle, channel, short *buffer, long buffer_length
-	printf("set data buffer (length of buffer: %ld %ld)\n", sizeof(data), sizeof(data[0]));
+	printf("set data buffer (length of buffer: %u %u)\n", sizeof(data), sizeof(data[0]));
 	return_status = ps6000SetDataBuffer(handle, (PS6000_CHANNEL)0, data, trace_length, PS6000_RATIO_MODE_NONE);
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
@@ -211,7 +220,8 @@ void Picoscope::MyFunction(unsigned long trace_length)
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
 	}
-	while (!Picoscope::IsReady() && !_kbhit()) {
+	// while (!Picoscope::IsReady() && !_kbhit()) {
+	while (!Picoscope::IsReady()) {
 		Sleep(0);
 	}
 	unsigned long N_of_samples;

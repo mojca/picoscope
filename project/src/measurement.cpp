@@ -1,8 +1,6 @@
 #include <iostream>
-#include <conio.h>
 #include <assert.h>
 #include <stdio.h>
-#include "windows.h"
 #include "math.h"
 
 #include "picoscope.h"
@@ -14,6 +12,15 @@
 #include "picoStatus.h"
 #include "ps4000Api.h"
 #include "ps6000Api.h"
+
+#ifdef WIN32
+#include "windows.h"
+#include <conio.h>
+#else
+#include <sys/types.h>
+#include <string.h>
+#include "linux_utils.h"
+#endif
 
 Measurement::Measurement(Picoscope *p)
 {
@@ -50,11 +57,16 @@ Measurement::~Measurement()
 
 	int i;
 	for(i=0; i<GetNumberOfChannels(); i++) {
+		FILE_LOG(logDEBUG4) << "Measurement::~Measurement - delete channel nr. " << i;
 		// delete the channels
 		delete channels[i];
 		// delete data
 		if(data_allocated[i]) {
-			delete [] data[i];
+			if(data[i] != NULL) {
+				delete [] data[i];
+			} else {
+				FILE_LOG(logWARNING) << "Measurement::~Measurement - something wrong with data allocation in channel nr. " << i;
+			}
 			// not that it really matters now when the object is gone anyway
 			data_allocated[i] = false;
 			data_length[i] = 0;
@@ -63,6 +75,7 @@ Measurement::~Measurement()
 	if(trigger != NULL) {
 		delete trigger;
 	}
+	FILE_LOG(logDEBUG4) << "Measurement::~Measurement successful";
 }
 // TODO: improve this; check for number of channels
 void Measurement::EnableChannels(bool a, bool b, bool c, bool d)
@@ -188,7 +201,7 @@ void Measurement::SetTimebaseInPicoscope()
 
 	// 4000
 	if(GetSeries() == PICO_4000) {
-		GetPicoscope()->SetStatus(ps4000GetTimebase2(
+/*		GetPicoscope()->SetStatus(ps4000GetTimebase2(
 			GetHandle(),       // handle
 			GetTimebase(),     // timebase
 			GetLength(),       // noSamples
@@ -196,7 +209,7 @@ void Measurement::SetTimebaseInPicoscope()
 			0,                 // oversample (TODO if needed)
 			NULL,              // maxSamples - the maximum number of samples available
 			0));               // segmentIndex - the index of the memory segment to use
-	// 6000
+*/	// 6000
 	} else {
 		FILE_LOG(logDEBUG2) << "ps6000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
 		GetPicoscope()->SetStatus(ps6000GetTimebase2(
@@ -479,11 +492,11 @@ void Measurement::RunBlock()
 		// TODO - check that GetLength()*GetNumberOfEnabledChannels()*GetNTraces() doesn't exceed the limit
 		if(GetSeries() == PICO_4000) {
 			FILE_LOG(logDEBUG2) << "ps4000SetNoOfCaptures(handle=" << GetHandle() << ", nCaptures=" << GetNTraces() << ")";
-			GetPicoscope()->SetStatus(ps4000SetNoOfCaptures(
+/*			GetPicoscope()->SetStatus(ps4000SetNoOfCaptures(
 				GetHandle(),    // handle
 				GetNTraces())); // nCaptures
 			max_length = max_length_l;
-		} else {
+*/		} else {
 			FILE_LOG(logDEBUG2) << "ps6000SetNoOfCaptures(handle=" << GetHandle() << ", nCaptures=" << GetNTraces() << ")";
 			GetPicoscope()->SetStatus(ps6000SetNoOfCaptures(
 				GetHandle(),    // handle
@@ -495,11 +508,11 @@ void Measurement::RunBlock()
 		}
 		if(GetSeries() == PICO_4000) {
 			FILE_LOG(logDEBUG2) << "ps4000MemorySegments(handle=" << GetHandle() << ", nSegments=" << GetNTraces() << ", &max_length=" << max_length << ")";
-			GetPicoscope()->SetStatus(ps4000MemorySegments(
+/*			GetPicoscope()->SetStatus(ps4000MemorySegments(
 				GetHandle(),   // handle
 				GetNTraces(),  // nSegments
 				&max_length));
-			FILE_LOG(logDEBUG2) << "->ps4000MemorySegments(... max_length=" << max_length << ")";
+*/			FILE_LOG(logDEBUG2) << "->ps4000MemorySegments(... max_length=" << max_length << ")";
 		} else {
 			FILE_LOG(logDEBUG2) << "ps6000MemorySegments(handle=" << GetHandle() << ", nSegments=" << GetNTraces() << ", &max_length=" << max_length << ")";
 			GetPicoscope()->SetStatus(ps6000MemorySegments(
@@ -519,10 +532,10 @@ void Measurement::RunBlock()
 		}
 		if(GetSeries() == PICO_4000) {
 			FILE_LOG(logDEBUG2) << "ps4000SetNoOfCaptures(handle=" << GetHandle() << ", nCaptures=" << GetNTraces() << ")";
-			GetPicoscope()->SetStatus(ps4000SetNoOfCaptures(
+/*			GetPicoscope()->SetStatus(ps4000SetNoOfCaptures(
 				GetHandle(),    // handle
 				GetNTraces())); // nCaptures
-		} else {
+*/		} else {
 			FILE_LOG(logDEBUG2) << "ps6000SetNoOfCaptures(handle=" << GetHandle() << ", nCaptures=" << GetNTraces() << ")";
 			GetPicoscope()->SetStatus(ps6000SetNoOfCaptures(
 				GetHandle(),    // handle
@@ -536,7 +549,7 @@ void Measurement::RunBlock()
 
 	t.Start();
 	if(GetSeries() == PICO_4000) {
-		GetPicoscope()->SetStatus(ps4000RunBlock(
+/*		GetPicoscope()->SetStatus(ps4000RunBlock(
 			GetHandle(),              // handle
 			GetLengthBeforeTrigger(), // noOfPreTriggerSamples
 			GetLengthAfterTrigger(),  // noOfPostTriggerSamples
@@ -546,7 +559,7 @@ void Measurement::RunBlock()
 			0,                        // segmentIndex
 			CallBackBlock,            // lpReady
 			NULL));                   // *pParameter
-	} else {
+*/	} else {
 		FILE_LOG(logDEBUG2) << "ps6000RunBlock(handle=" << GetHandle() << ", noOfPreTriggerSamples=" << GetLengthBeforeTrigger() << ", noOfPostTriggerSamples=" << GetLengthAfterTrigger() << ", timebase=" << timebase << ", oversample=1, *timeIndisposedMs=NULL, segmentIndex=0, lpReady=CallBackBlock, *pParameter=NULL)";
 		GetPicoscope()->SetStatus(ps6000RunBlock(
 			GetHandle(),              // handle
@@ -609,12 +622,12 @@ unsigned long Measurement::GetNextData()
 				throw "Unable to get data. Memory is not allocated.";
 			}
 			if(GetSeries() == PICO_4000) {
-				GetPicoscope()->SetStatus(ps4000SetDataBuffer(
+/*				GetPicoscope()->SetStatus(ps4000SetDataBuffer(
 					GetHandle(),                  // handle
 					(PS4000_CHANNEL)i,            // channel
 					data[i],                      // *buffer
 					GetMaxTraceLengthToFetch())); // bufferLength
-			} else {
+*/			} else {
 				FILE_LOG(logDEBUG2) << "ps6000SetDataBuffer(handle=" << GetHandle() << ", channel=" << i << ", *buffer=<data[i]>, bufferLength=" << GetMaxTraceLengthToFetch() << ", downSampleRatioMode=PS6000_RATIO_MODE_NONE)";
 				GetPicoscope()->SetStatus(ps6000SetDataBuffer(
 					GetHandle(),                // handle
@@ -636,7 +649,7 @@ unsigned long Measurement::GetNextData()
 	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
 	if(GetSeries() == PICO_4000) {
 		FILE_LOG(logDEBUG2) << "ps4000GetValues(handle=" << GetHandle() << ", startIndex=" << GetNextIndex() << ", *noOfSamples=" << length_of_trace_fetched << ", downSampleRatio=1, downSampleRatioMode=PS4000_RATIO_MODE_NONE, segmentIndex=0, *overflow)";
-		GetPicoscope()->SetStatus(ps4000GetValues(
+/*		GetPicoscope()->SetStatus(ps4000GetValues(
 			GetHandle(),                // handle
 			// TODO: start index
 			GetNextIndex(),             // startIndex
@@ -646,7 +659,7 @@ unsigned long Measurement::GetNextData()
 			PS4000_RATIO_MODE_NONE,     // downSampleRatioMode
 			0,                          // segmentIndex
 			&overflow));                // *overflow
-		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "ps4000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
+*/		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "ps4000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
 	} else {
 		FILE_LOG(logDEBUG2) << "ps6000GetValues(handle=" << GetHandle() << ", startIndex=" << GetNextIndex() << ", *noOfSamples=" << length_of_trace_fetched << ", downSampleRatio=1, downSampleRatioMode=PS6000_RATIO_MODE_NONE, segmentIndex=0, *overflow)";
 		GetPicoscope()->SetStatus(ps6000GetValues(
@@ -739,13 +752,13 @@ unsigned long Measurement::GetNextDataBulk()
 					// 	(PS4000_CHANNEL)i,            // channel
 					// 	data[i],                      // *buffer
 					// 	GetMaxTraceLengthToFetch())); // bufferLength
-					GetPicoscope()->SetStatus(ps4000SetDataBufferBulk(
+/*					GetPicoscope()->SetStatus(ps4000SetDataBufferBulk(
 						GetHandle(),                // handle
 						(PS4000_CHANNEL)i,          // channel
 						&data[i][j*GetLength()],    // *buffer
 						GetLength(),                // bufferLength
 						index));                    // waveform
-				} else {
+*/				} else {
 					// unsigned long dj = (j+GetNextIndex()/GetMaxTracesToFetch())%traces_asked_for;
 					// std::cerr << "-- (set data buffer bulk: [" << i << "][" << dj
 					// 	<< "], len:" << GetLength() << ", index:" << index
@@ -776,7 +789,7 @@ unsigned long Measurement::GetNextDataBulk()
 	// std::cerr << "length of buffer: " << data_length[0] << ", length of requested trace: " << length_of_trace_askedfor << " ... ";
 	if(GetSeries() == PICO_4000) {
 		length_of_trace_fetched = GetLength();
-		GetPicoscope()->SetStatus(ps4000GetValuesBulk(
+/*		GetPicoscope()->SetStatus(ps4000GetValuesBulk(
 			GetHandle(),                // handle
 			&length_of_trace_fetched,   // *noOfSamples
 			// TODO: start index
@@ -784,7 +797,7 @@ unsigned long Measurement::GetNextDataBulk()
 			GetNextIndex()+traces_asked_for-1, // toSegmentIndex
 			// this could also be min(GetMaxTraceLengthToFetch(),wholeLength-startindex)
 			overflow));                // *overflow
-	} else {
+*/	} else {
 		// TODO: not sure about this ...
 		length_of_trace_fetched = GetLength();
 		GetPicoscope()->SetStatus(ps6000GetValuesBulk(

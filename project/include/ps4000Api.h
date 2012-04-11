@@ -23,7 +23,7 @@
 #endif
 
 #ifdef WIN32
-	typedef unsigned __int64 u_int64_t;
+	typedef unsigned __int64 uint64_t;
 	#ifdef PREF1
 		#undef PREF1
 	#endif
@@ -48,6 +48,7 @@
 		#endif
 		#define PREF3(x) x
 	#endif
+	#define PREF4 __stdcall
 #else
 	/* Define a 64-bit integer type */
 	#include <stdint.h>
@@ -66,7 +67,7 @@
 		#define PREF2
 		#define PREF3(x) x
 	#endif
-	#define __stdcall
+	#define PREF4
 #endif
 
 #define PS4000_MAX_OVERSAMPLE_12BIT  16
@@ -377,14 +378,14 @@ typedef enum enPS4000FrequencyCounterRange
 	FC_MAX
 } PS4000_FREQUENCY_COUNTER_RANGE;
 
-typedef void (__stdcall *ps4000BlockReady)
+typedef void (PREF4 *ps4000BlockReady)
 	(
 		short                     handle,
 		PICO_STATUS               status,
 		void                    * pParameter
 	);
 
-typedef void (__stdcall *ps4000StreamingReady)
+typedef void (PREF4 *ps4000StreamingReady)
 	(
 		short                     handle,
 		long                      noOfSamples,
@@ -396,7 +397,7 @@ typedef void (__stdcall *ps4000StreamingReady)
 		void                    * pParameter
 	);
 
-typedef void (__stdcall *ps4000DataReady)
+typedef void (PREF4 *ps4000DataReady)
 	(
 		short                     handle,
 		long                      noOfSamples,
@@ -881,7 +882,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetProbe)
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000HoldOff)
 	(
 		short                          handle,
-		u_int64_t                      holdoff,
+		uint64_t                       holdoff,
 		PS4000_HOLDOFF_TYPE            type
 	);
 

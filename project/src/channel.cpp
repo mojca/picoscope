@@ -73,13 +73,13 @@ void Channel::SetChannelInPicoscope()
 {
 	// 4000
 	if(GetSeries() == PICO_4000) {
-		GetPicoscope()->SetStatus(ps4000SetChannel(
+/*		GetPicoscope()->SetStatus(ps4000SetChannel(
 			GetHandle(),                  // handle
 			(PS4000_CHANNEL)GetIndex(),   // channel
 			(short)IsEnabled(),           // enabled
 			(short)true,                  // TRUE for DC
 			(PS4000_RANGE)GetVoltage())); // range = voltage
-	// 6000
+*/	// 6000
 	} else {
 		FILE_LOG(logDEBUG2) << "ps6000SetChannel(handle=" << GetHandle() << ", channel=" << GetIndex() << ", enabled=" << IsEnabled() << ", type=PS6000_DC_1M, range=" << GetVoltage() << ", analogueOffset=0.0, bandwidth=PS6000_BW_FULL)";
 		GetPicoscope()->SetStatus(ps6000SetChannel(

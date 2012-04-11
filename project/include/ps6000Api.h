@@ -34,21 +34,21 @@
 #endif
 
 #ifdef WIN32
-/*	If you are dynamically linking PS6000.DLL into your project #define DYNLINK here
- */
-#ifdef DYNLINK
-	#define PREF1 typedef
-	#define PREF2
-	#define PREF3(x) (__stdcall *x)
-#else
-	#define PREF1
-	#ifdef _USRDLL
-		#define PREF2 __declspec(dllexport) __stdcall
+	/*	If you are dynamically linking PS6000.DLL into your project #define DYNLINK here
+	 */
+	#ifdef DYNLINK
+		#define PREF1 typedef
+		#define PREF2
+		#define PREF3(x) (__stdcall *x)
 	#else
-		#define PREF2 __declspec(dllimport) __stdcall
+		#define PREF1
+		#ifdef _USRDLL
+			#define PREF2 __declspec(dllexport) __stdcall
+		#else
+			#define PREF2 __declspec(dllimport) __stdcall
+		#endif
+		#define PREF3(x) x
 	#endif
-	#define PREF3(x) x
-#endif
 	#define PREF4 __stdcall
 #else
 
@@ -625,7 +625,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesTriggerTimeOffsetBulk)
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps6000GetValuesTriggerTimeOffsetBulk64)
 	(
 		short               handle,
-		__int64     * times,
+		__int64           * times,
 		PS6000_TIME_UNITS * timeUnits,
 		unsigned long       fromSegmentIndex,
 		unsigned long       toSegmentIndex

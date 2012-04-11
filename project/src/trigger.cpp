@@ -135,16 +135,16 @@ void Trigger::SetTriggerInPicoscope()
 			(PS4000_CHANNEL)ch_index,  // channel
 			PS4000_LEVEL};             // thresholdMode
 
-		GetPicoscope()->SetStatus(ps4000SetTriggerChannelConditions(
+/*		GetPicoscope()->SetStatus(ps4000SetTriggerChannelConditions(
 			GetHandle(),     // handle
 			&conditions4000, // * conditions
 			1));             // nConditions
-		if(GetPicoscope()->GetStatus() != PICO_OK) {
+*/		if(GetPicoscope()->GetStatus() != PICO_OK) {
 			std::cerr << "Unable to set trigger conditions." << std::endl;
 			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 		}
 
-		GetPicoscope()->SetStatus(ps4000SetTriggerChannelDirections(
+/*		GetPicoscope()->SetStatus(ps4000SetTriggerChannelDirections(
 			GetHandle(),                                   // handle
 			(ch_index == 0) ? direction4000 : PS4000_NONE, // channelA
 			(ch_index == 1) ? direction4000 : PS4000_NONE, // channelB
@@ -152,18 +152,18 @@ void Trigger::SetTriggerInPicoscope()
 			(ch_index == 3) ? direction4000 : PS4000_NONE, // channelD
 			PS4000_NONE,                                   // ext
 			PS4000_NONE));                                 // aux
-		if(GetPicoscope()->GetStatus() != PICO_OK) {
+*/		if(GetPicoscope()->GetStatus() != PICO_OK) {
 			std::cerr << "Unable to set trigger directions." << std::endl;
 			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 		}
 
-		GetPicoscope()->SetStatus(ps4000SetTriggerChannelProperties(
+/*		GetPicoscope()->SetStatus(ps4000SetTriggerChannelProperties(
 			GetHandle(),     // handle
 			&properties4000, // * channelProperties
 			1,               // nChannelProperties
 			0,               // auxOutputEnable (not used)
 			0));             // autoTriggerMilliseconds (whether to autotrigger in case of no event)
-		if(GetPicoscope()->GetStatus() != PICO_OK) {
+*/		if(GetPicoscope()->GetStatus() != PICO_OK) {
 			std::cerr << "Unable to set trigger properties." << std::endl;
 			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 		}

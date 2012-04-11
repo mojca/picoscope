@@ -292,7 +292,7 @@ void Args::ParseAndSetRate(char *str)
 	long number;
 	char unit[20];
 
-	sscanf(str, "%d%s", &number, unit);
+	sscanf(str, "%ld%s", &number, unit);
 	if(strcmp(unit,"ps")==0) {
 		if(number>=200) {
 			GetMeasurement()->SetTimebaseInPs((unsigned long)number);
