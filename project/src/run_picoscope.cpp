@@ -193,15 +193,15 @@ int main(int argc, char** argv)
 						}
 					}
 				}
-				tmp_dbl = meas->GetRatePerSecond();
-				fprintf(f, "\nrate:       \n");
-				if(fabs(tmp_dbl) > 1e6) {
-					fprintf(f, "%.3f MS/s\n", tmp_dbl*1e-6);
-				} else if(fabs(tmp_dbl) > 1e3) {
-					fprintf(f, "%.3f kS/s\n", tmp_dbl*1e-3);
-				} else {
-					fprintf(f, "%f S/s\n", tmp_dbl);
-				}
+				// tmp_dbl = meas->GetRatePerSecond();
+				// fprintf(f, "\nrate:       \n");
+				// if(fabs(tmp_dbl) > 1e6) {
+				// 	fprintf(f, "%.3f MS/s\n", tmp_dbl*1e-6);
+				// } else if(fabs(tmp_dbl) > 1e3) {
+				// 	fprintf(f, "%.3f kS/s\n", tmp_dbl*1e-3);
+				// } else {
+				// 	fprintf(f, "%f S/s\n", tmp_dbl);
+				// }
 			} else {
 				while(meas->GetNextData() > 0) {
 					for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
