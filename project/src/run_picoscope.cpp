@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	t.Start();
 	try {
 
-		Picoscope6000 *pico = new Picoscope6000();
+		Picoscope4000 *pico = new Picoscope4000();
 		Measurement   *meas = new Measurement(pico);
 		Channel       *ch[4];
 
@@ -160,7 +160,7 @@ int main(int argc, char** argv)
 			fprintf(f, "unit_x:     %.1lf ns\n", tmp_dbl);
 			fprintf(f, "range_x:    %.1lf ns\n", x.GetLength()*tmp_dbl);
 			tmp_dbl = x.GetVoltageDouble();
-			fprintf(f, "unit_y:     %.6le V\n", tmp_dbl*3.0517578125e-5); // 2^(-15) since it goes from [-2^(15),2^(15)-1]
+			fprintf(f, "unit_y:     %.10le V\n", tmp_dbl*3.0517578125e-5); // 2^(-15) since it goes from [-2^(15),2^(15)-1]
 			fprintf(f, "range_y:    %g V\n", tmp_dbl);
 
 			if(x.GetNTraces() > 1) {

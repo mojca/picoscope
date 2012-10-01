@@ -41,8 +41,16 @@ Picoscope*   Trigger::GetPicoscope()   const { return GetMeasurement()->GetPicos
 PICO_SERIES  Trigger::GetSeries()      const { return GetPicoscope()->GetSeries(); };
 short        Trigger::GetHandle()      const { return GetPicoscope()->GetHandle(); };
 
-short        Trigger::GetThreshold()         { return (short)round(GetYFraction()*(double)PS6000_MAX_VALUE); };
-
+short Trigger::GetThreshold()
+{
+	if(GetSeries() == PICO_4000) {
+		return (short)round(GetYFraction()*(double)PS4000_MAX_VALUE);
+	} else if(GetSeries() == PICO_6000) {
+		return (short)round(GetYFraction()*(double)PS6000_MAX_VALUE);
+	} else {
+		throw "unknown pico series";
+	}
+}
 
 void Trigger::SetTriggerInPicoscope()
 {
@@ -107,10 +115,58 @@ void Trigger::SetTriggerInPicoscope()
 			std::cerr << "Unable to set trigger properties." << std::endl;
 			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 		}
-
 	} else {
-		throw("not yet implemented.\n");
-		// TODO
+		threshold = GetThreshold();
+		fprintf(stderr, "-- Setting trigger threshold to %d\n", threshold);
+
+		struct tPS4000TriggerConditions conditions4000 = {
+			(ch_index == 0) ? PS4000_CONDITION_TRUE : PS4000_CONDITION_DONT_CARE,
+			(ch_index == 1) ? PS4000_CONDITION_TRUE : PS4000_CONDITION_DONT_CARE,
+			(ch_index == 2) ? PS4000_CONDITION_TRUE : PS4000_CONDITION_DONT_CARE,
+			(ch_index == 3) ? PS4000_CONDITION_TRUE : PS4000_CONDITION_DONT_CARE,
+			PS4000_CONDITION_DONT_CARE,
+			PS4000_CONDITION_DONT_CARE,
+			PS4000_CONDITION_DONT_CARE };
+		PS4000_THRESHOLD_DIRECTION direction4000 = (GetYFraction() > 0) ? PS4000_RISING : PS4000_FALLING;
+		// struct tTriggerDirections directions6000;
+		struct tPS4000TriggerChannelProperties properties4000 = {
+			threshold, hysteresis,     // threshold & hysteresis upper
+			threshold, hysteresis,     // threshold & hysteresis lower
+			(PS4000_CHANNEL)ch_index,  // channel
+			PS4000_LEVEL};             // thresholdMode
+
+		GetPicoscope()->SetStatus(ps4000SetTriggerChannelConditions(
+			GetHandle(),     // handle
+			&conditions4000, // * conditions
+			1));             // nConditions
+		if(GetPicoscope()->GetStatus() != PICO_OK) {
+			std::cerr << "Unable to set trigger conditions." << std::endl;
+			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+		}
+
+		GetPicoscope()->SetStatus(ps4000SetTriggerChannelDirections(
+			GetHandle(),                                   // handle
+			(ch_index == 0) ? direction4000 : PS4000_NONE, // channelA
+			(ch_index == 1) ? direction4000 : PS4000_NONE, // channelB
+			(ch_index == 2) ? direction4000 : PS4000_NONE, // channelC
+			(ch_index == 3) ? direction4000 : PS4000_NONE, // channelD
+			PS4000_NONE,                                   // ext
+			PS4000_NONE));                                 // aux
+		if(GetPicoscope()->GetStatus() != PICO_OK) {
+			std::cerr << "Unable to set trigger directions." << std::endl;
+			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+		}
+
+		GetPicoscope()->SetStatus(ps4000SetTriggerChannelProperties(
+			GetHandle(),     // handle
+			&properties4000, // * channelProperties
+			1,               // nChannelProperties
+			0,               // auxOutputEnable (not used)
+			0));             // autoTriggerMilliseconds (whether to autotrigger in case of no event)
+		if(GetPicoscope()->GetStatus() != PICO_OK) {
+			std::cerr << "Unable to set trigger properties." << std::endl;
+			throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
+		}
 	}
 
 }

@@ -267,88 +267,88 @@ typedef enum enIndexMode
 	MAX_INDEX_MODES
 } INDEX_MODE;
 
-typedef enum enThresholdMode
+typedef enum enPS4000ThresholdMode
 {
-	LEVEL,
-	WINDOW
-} THRESHOLD_MODE;
+	PS4000_LEVEL,
+	PS4000_WINDOW
+} PS4000_THRESHOLD_MODE;
 
 typedef enum enThresholdDirection
 {
-	ABOVE, //using upper threshold
-	BELOW,
-	RISING, // using upper threshold
-	FALLING, // using upper threshold
-	RISING_OR_FALLING, // using both threshold
-	ABOVE_LOWER, // using lower threshold
-	BELOW_LOWER, // using lower threshold
-	RISING_LOWER,			 // using upper threshold
-	FALLING_LOWER,		 // using upper threshold
+	PS4000_ABOVE, //using upper threshold
+	PS4000_BELOW,
+	PS4000_RISING, // using upper threshold
+	PS4000_FALLING, // using upper threshold
+	PS4000_RISING_OR_FALLING, // using both threshold
+	PS4000_ABOVE_LOWER, // using lower threshold
+	PS4000_BELOW_LOWER, // using lower threshold
+	PS4000_RISING_LOWER,			 // using upper threshold
+	PS4000_FALLING_LOWER,		 // using upper threshold
 
 	// Windowing using both thresholds
-	INSIDE = ABOVE,
-	OUTSIDE = BELOW,
-	ENTER = RISING,
-	EXIT = FALLING,
-	ENTER_OR_EXIT = RISING_OR_FALLING,
-	POSITIVE_RUNT = 9,
-	NEGATIVE_RUNT,
+	PS4000_INSIDE = PS4000_ABOVE,
+	PS4000_OUTSIDE = PS4000_BELOW,
+	PS4000_ENTER = PS4000_RISING,
+	PS4000_EXIT = PS4000_FALLING,
+	PS4000_ENTER_OR_EXIT = PS4000_RISING_OR_FALLING,
+	PS4000_POSITIVE_RUNT = 9,
+	PS4000_NEGATIVE_RUNT,
 
 	// no trigger set
-	NONE = RISING
-} THRESHOLD_DIRECTION;
+	PS4000_NONE = PS4000_RISING
+} PS4000_THRESHOLD_DIRECTION;
 
-typedef enum enTriggerState
+typedef enum enPS4000TriggerState
 {
-	CONDITION_DONT_CARE,
-	CONDITION_TRUE,
-	CONDITION_FALSE,
-	CONDITION_MAX
-} TRIGGER_STATE;
+	PS4000_CONDITION_DONT_CARE,
+	PS4000_CONDITION_TRUE,
+	PS4000_CONDITION_FALSE,
+	PS4000_CONDITION_MAX
+} PS4000_TRIGGER_STATE;
 
 #pragma pack(1)
-typedef struct tTriggerConditions
+typedef struct tPS4000TriggerConditions
 {
-	TRIGGER_STATE channelA;
-	TRIGGER_STATE channelB;
-	TRIGGER_STATE channelC;
-	TRIGGER_STATE channelD;
-	TRIGGER_STATE external;
-	TRIGGER_STATE aux;
-	TRIGGER_STATE pulseWidthQualifier;
-} TRIGGER_CONDITIONS;
+	PS4000_TRIGGER_STATE channelA;
+	PS4000_TRIGGER_STATE channelB;
+	PS4000_TRIGGER_STATE channelC;
+	PS4000_TRIGGER_STATE channelD;
+	PS4000_TRIGGER_STATE external;
+	PS4000_TRIGGER_STATE aux;
+	PS4000_TRIGGER_STATE pulseWidthQualifier;
+} PS4000_TRIGGER_CONDITIONS;
 #pragma pack()
 
 #pragma pack(1)
-typedef struct tPwqConditions
+typedef struct tPS4000PwqConditions
 {
-	TRIGGER_STATE channelA;
-	TRIGGER_STATE channelB;
-	TRIGGER_STATE channelC;
-	TRIGGER_STATE channelD;
-	TRIGGER_STATE external;
-	TRIGGER_STATE aux;
+	PS4000_TRIGGER_STATE channelA;
+	PS4000_TRIGGER_STATE channelB;
+	PS4000_TRIGGER_STATE channelC;
+	PS4000_TRIGGER_STATE channelD;
+	PS4000_TRIGGER_STATE external;
+	PS4000_TRIGGER_STATE aux;
 } PWQ_CONDITIONS;
 #pragma pack()
 
 #pragma pack(1)
-typedef struct tTriggerChannelProperties
+typedef struct tPS4000TriggerChannelProperties
 {
 	short thresholdUpper;
 	unsigned short thresholdUpperHysteresis;
 	short thresholdLower;
 	unsigned short thresholdLowerHysteresis;
 	PS4000_CHANNEL channel;
-	THRESHOLD_MODE thresholdMode;
-} TRIGGER_CHANNEL_PROPERTIES;
+	PS4000_THRESHOLD_MODE thresholdMode;
+} PS4000_TRIGGER_CHANNEL_PROPERTIES;
 #pragma pack()
 
-typedef enum enRatioMode
+typedef enum enPS4000RatioMode
 {
-	RATIO_MODE_NONE,
-	RATIO_MODE_AGGREGATE = 1,
-	RATIO_MODE_AVERAGE = 2
-} RATIO_MODE;
+	PS4000_RATIO_MODE_NONE,
+	PS4000_RATIO_MODE_AGGREGATE = 1,
+	PS4000_RATIO_MODE_AVERAGE = 2
+} PS4000_RATIO_MODE;
 
 #ifndef __PSX000API_enPulseWidthType_H__
 #define __PSX000API_enPulseWidthType_H__
@@ -467,7 +467,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000MemorySegments)
 	(
 		short                       handle,
 		unsigned short              nSegments,
-		long                      * nMaxSamples
+		unsigned long             * nMaxSamples
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetChannel)
@@ -570,7 +570,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetSimpleTrigger)
 		short enable,
 		PS4000_CHANNEL source,
 		short threshold,
-		THRESHOLD_DIRECTION direction,
+		PS4000_THRESHOLD_DIRECTION direction,
 		unsigned long delay,
 		short autoTrigger_ms
 	);
@@ -578,7 +578,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetSimpleTrigger)
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetTriggerChannelProperties)
 	(
 		short                               handle,
-		TRIGGER_CHANNEL_PROPERTIES *  channelProperties,
+		PS4000_TRIGGER_CHANNEL_PROPERTIES * channelProperties,
 		short                               nChannelProperties,
 		short                               auxOutputEnable,
 		long                                autoTriggerMilliseconds
@@ -588,19 +588,19 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetTriggerChannelProperties)
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetTriggerChannelConditions)
 	(
 		short                       handle,
-		TRIGGER_CONDITIONS  * conditions,
+		PS4000_TRIGGER_CONDITIONS * conditions,
 		short                       nConditions
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetTriggerChannelDirections)
 	(
-		short                 handle,
-		THRESHOLD_DIRECTION   channelA,
-		THRESHOLD_DIRECTION   channelB,
-		THRESHOLD_DIRECTION   channelC,
-		THRESHOLD_DIRECTION   channelD,
-		THRESHOLD_DIRECTION   ext,
-		THRESHOLD_DIRECTION   aux
+		short                        handle,
+		PS4000_THRESHOLD_DIRECTION   channelA,
+		PS4000_THRESHOLD_DIRECTION   channelB,
+		PS4000_THRESHOLD_DIRECTION   channelC,
+		PS4000_THRESHOLD_DIRECTION   channelD,
+		PS4000_THRESHOLD_DIRECTION   ext,
+		PS4000_THRESHOLD_DIRECTION   aux
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetTriggerDelay)
@@ -611,13 +611,13 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetTriggerDelay)
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetPulseWidthQualifier)
 	(
-		short                     handle,
-		PWQ_CONDITIONS    * conditions,
-		short                     nConditions,
-		THRESHOLD_DIRECTION       direction,
-		unsigned long             lower,
-		unsigned long             upper,
-		PULSE_WIDTH_TYPE          type
+		short                      handle,
+		PWQ_CONDITIONS           * conditions,
+		short                      nConditions,
+		PS4000_THRESHOLD_DIRECTION direction,
+		unsigned long              lower,
+		unsigned long              upper,
+		PULSE_WIDTH_TYPE           type
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000IsTriggerOrPulseWidthQualifierEnabled)
@@ -731,7 +731,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBufferWithMode)
 		PS4000_CHANNEL         channel,
 		short                * buffer,
 		long                   bufferLth,
-		RATIO_MODE             mode
+		PS4000_RATIO_MODE      mode
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBuffersWithMode)
@@ -741,7 +741,7 @@ PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBuffersWithMode)
 		short                * bufferMax,
 		short                * bufferMin,
 		long                   bufferLth,
-		RATIO_MODE             mode
+		PS4000_RATIO_MODE      mode
 	);
 
 PREF0 PREF1 PICO_STATUS PREF2 PREF3 (ps4000SetDataBuffer)
