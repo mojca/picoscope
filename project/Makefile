@@ -1,8 +1,9 @@
 
-SRC_DIR  = src
-BIN_DIR  = bin
-BIN_NAME = run_picoscope
-BIN_EXT  = .exe
+SRC_DIR   = src
+BIN_DIR   = bin
+BIN_NAME  = run_picoscope
+BIN_EXT   = .exe
+UTIL_DIR  = util
 
 INCLUDES = -I./src -I./include
 LIBS = -L./lib -lps4000 -lps6000
@@ -25,9 +26,11 @@ endif
 
 
 all :
+	$(CXX) $(UTIL_DIR)/bin2dat.cpp -o $(BIN_DIR)/bin2dat$(BIN_EXT)
 	$(CXX) -g $(SRC_DIR)/run_picoscope.cpp $(SRC_DIR)/picoscope.cpp $(SRC_DIR)/measurement.cpp $(SRC_DIR)/channel.cpp $(SRC_DIR)/trigger.cpp $(SRC_DIR)/timing.cpp $(SRC_DIR)/args.cpp $(INCLUDES) $(LIBS) -o $(BIN_DIR)/$(BIN_NAME)$(BIN_EXT)
 #	$(CXX) $(SRC_DIR)/empty.cpp         $(SRC_DIR)/picoscope.cpp $(SRC_DIR)/measurement.cpp $(SRC_DIR)/channel.cpp $(SRC_DIR)/trigger.cpp $(SRC_DIR)/timing.cpp $(SRC_DIR)/args.cpp $(INCLUDES) $(LIBS) -o $(BIN_DIR)/empty$(BIN_EXT)
 #	$(CXX) -g $(SRC_DIR)/empty_debug.cpp $(SRC_DIR)/picoscope.cpp $(SRC_DIR)/measurement.cpp $(SRC_DIR)/channel.cpp $(SRC_DIR)/trigger.cpp $(SRC_DIR)/timing.cpp $(INCLUDES) $(LIBS) -o $(BIN_DIR)/empty_debug$(BIN_EXT)
 
 clean :
+	$(RM) $(BIN_DIR)$(PATH_SEP)bin2dat$(BIN_EXT)
 	$(RM) $(BIN_DIR)$(PATH_SEP)$(BIN_NAME)$(BIN_EXT)
