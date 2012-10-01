@@ -1,3 +1,4 @@
+#include <vector>
 #include <iostream>
 #include <conio.h>
 #include <assert.h>
@@ -811,6 +812,12 @@ void Measurement::SetLengthFetched(unsigned long l)
 void Measurement::WriteDataBin(FILE *f, int channel)
 {
 	Timing t;
+	long size_written;
+	int i, j;
+
+	const unsigned int length_datachunk = 1000000;
+	char data_8bit[1000000];
+	// std::vector<char>data_8bit(1000);
 
 	std::cerr << "Write binary data for channel " << (char)('A'+channel) << " ... ";
 	t.Start();
@@ -819,9 +826,33 @@ void Measurement::WriteDataBin(FILE *f, int channel)
 		throw "You can only write data for channels 0 - (N-1).";
 	} else {
 		if(GetChannel(channel)->IsEnabled()) {
-			fwrite(data[channel], sizeof(short), GetLengthFetched(), f);
+
+			/*
+			size_written = fwrite(data[channel], sizeof(short), GetLengthFetched(), f);
 			// make sure the data is written
 			fflush(f);
+			if(size_written < GetLengthFetched()) {
+				FILE_LOG(logERROR) << "Measurement::WriteDataBin didn't manage to write to file.";
+			}*/
+			// TODO: if only 8 bits
+			int length_fetched   = GetLengthFetched();
+			// int length_datachunk = data_8bit.size();
+			for(i=0; i<length_fetched; i+=length_datachunk) {
+				for(j=0; j<length_datachunk && i+j<length_fetched; j++) {
+					data_8bit[j] = data[channel][i+j] >> 8;
+				}
+				size_written = fwrite(data_8bit, sizeof(char), j, f);
+				fflush(f);
+				if(size_written < j) {
+					FILE_LOG(logERROR) << "Measurement::WriteDataBin didn't manage to write to file.";
+				}
+			}
+			// size_written = fwrite(data[channel], sizeof(short), GetLengthFetched(), f);
+			// make sure the data is written
+			// fflush(f);
+			// if(size_written < GetLengthFetched()) {
+			// 	FILE_LOG(logERROR) << "Measurement::WriteDataBin didn't manage to write to file.";
+			// }
 		} else {
 			std::cerr << "The requested channel " << (char)('A'+channel) << "is not enabled.\n";
 			throw "The requested channel is not enabled.";
