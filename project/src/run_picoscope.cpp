@@ -91,10 +91,9 @@ int main(int argc, char** argv)
 				FILE_LOG(logDEBUG4) << "main - will trigger on channel " << (char)('A'+i);
 				meas->SetTrigger(x.GetTrigger(ch[i]));
 			}
-			meas->AllocateMemoryRapidBlock(MEGA(200));
-			// meas->AllocateMemoryRapidBlock(20000);
+			meas->AllocateMemoryRapidBlock(MEGA(30));
 		} else {
-			meas->AllocateMemoryBlock(MEGA(200));
+			meas->AllocateMemoryBlock(MEGA(30));
 		}
 
 		// std::cerr << "test w5\n";
