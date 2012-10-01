@@ -775,9 +775,9 @@ unsigned long Measurement::GetNextDataBulk()
 		throw Picoscope::PicoscopeException(GetPicoscope()->GetStatus());
 	}
 
-	for(i=0; i<traces_asked_for; i++) {
-		std::cerr << "time " << i << ": " << timestamps[i] << "\n";
-	}
+	// for(i=0; i<traces_asked_for; i++) {
+	// 	std::cerr << "time " << i << ": " << timestamps[i] << "\n";
+	// }
 	SetRate(traces_asked_for, timestamps[0], timeunits[0], timestamps[traces_asked_for-1], timeunits[traces_asked_for-1]);
 	if(timeunits[0] != timeunits[traces_asked_for-1]) {
 		FILE_LOG(logWARNING) << "time unit of the first and last sample differ; rate is not reliable; TIMING seems to be broken anyway";
