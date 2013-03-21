@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	t.Start();
 	try {
 
-		Picoscope4000 *pico = new Picoscope6000();
+		Picoscope6000 *pico = new Picoscope6000();
 		Measurement   *meas = new Measurement(pico);
 		Channel       *ch[4];
 
