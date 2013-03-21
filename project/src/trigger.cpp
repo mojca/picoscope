@@ -77,7 +77,7 @@ void Trigger::SetTriggerInPicoscope()
 	if(GetSeries() == PICO_6000) {
 		hysteresis = 256 * 2;
 		threshold = GetThreshold();
-		fprintf(stderr, "-- Setting trigger threshold to %d (%g = %g %% of %g V)\n", threshold,
+		fprintf(stderr, "-- Setting trigger threshold to %d (%g V = %g %% of %g V)\n", threshold,
 			threshold/(double)PS6000_MAX_VALUE*GetChannel()->GetVoltageInVolts(),
 			threshold/(double)PS6000_MAX_VALUE, GetChannel()->GetVoltageInVolts());
 
