@@ -19,6 +19,7 @@ public:
 	bool IsEnabled() const  { return is_enabled;  }
 	void SetVoltage(PICO_VOLTAGE);
 	unsigned int GetVoltage() const { return voltage; } // has to be cast to (PS4000_RANGE/PS6000_RANGE)
+	double GetVoltageInVolts();
 	int GetIndex() const    { return index; }
 
 	// Measurement* GetMeasurement() const { return measurement; }

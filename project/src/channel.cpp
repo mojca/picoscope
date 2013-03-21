@@ -68,6 +68,41 @@ void Channel::SetVoltage(PICO_VOLTAGE u)
 	}
 }
 
+double Channel::GetVoltageInVolts()
+{
+	// 6000
+	if(GetSeries() == PICO_6000) {
+		switch(voltage) {
+			case(PS6000_50MV):  return  0.050; break;
+			case(PS6000_100MV): return  0.100; break;
+			case(PS6000_200MV): return  0.200; break;
+			case(PS6000_500MV): return  0.500; break;
+			case(PS6000_1V):    return  1.000; break;
+			case(PS6000_2V):    return  2.000; break;
+			case(PS6000_5V):    return  5.000; break;
+			case(PS6000_10V):   return 10.000; break;
+			case(PS6000_20V):   return 20.000; break;
+			default: throw("unknown voltage setting; should not happen"); break;
+		}
+	// 4000
+	} else {
+		switch(voltage) {
+			case(PS4000_50MV):  return   0.050; break;
+			case(PS4000_100MV): return   0.100; break;
+			case(PS4000_200MV): return   0.200; break;
+			case(PS4000_500MV): return   0.500; break;
+			case(PS4000_1V):    return   1.000; break;
+			case(PS4000_2V):    return   2.000; break;
+			case(PS4000_5V):    return   5.000; break;
+			case(PS4000_10V):   return  10.000; break;
+			case(PS4000_20V):   return  20.000; break;
+			case(PS4000_50V):   return  50.000; break;
+			case(PS4000_100V):  return 100.000; break;
+			default      : throw("unknown voltage setting; should not happen"); break;
+		}
+	}
+}
+
 // pass the data to picoscope
 void Channel::SetChannelInPicoscope()
 {

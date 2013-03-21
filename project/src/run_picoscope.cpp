@@ -168,9 +168,10 @@ int main(int argc, char** argv)
 					fprintf(f, "trigger_ch: %c\n", (char)(meas->GetTrigger()->GetChannel()->GetIndex()+'A'));
 					// fprintf(f, "trigger_xfrac: %g\n", meas->GetTrigger()->GetXFraction());
 					// fprintf(f, "trigger_yfrac: %g\n", meas->GetTrigger()->GetYFraction());
-					fprintf(f, "trigger_dx: %d (%g %%  of  %ld)\n", meas->GetLengthBeforeTrigger(), meas->GetLengthBeforeTrigger()*100.0/x.GetLength(), x.GetLength());
-					tmp_short =  meas->GetTrigger()->GetThreshold();
-					fprintf(f, "trigger_dy: %d (%g %%  or  %g V)\n", tmp_short, tmp_short*3.0517578125e-3, tmp_short*3.0517578125e-3*x.GetVoltageDouble());
+					fprintf(f, "trigger_dx: %d (%g %% of %ld)\n", meas->GetLengthBeforeTrigger(), meas->GetLengthBeforeTrigger()*100.0/x.GetLength(), x.GetLength());
+					tmp_short = meas->GetTrigger()->GetThreshold();
+					tmp_dbl   = meas->GetTrigger()->GetYFraction();
+					fprintf(f, "trigger_dy: %g V (%d)\n", meas->GetTrigger()->GetThresholdInVolts() /*tmp_dbl*x.GetVoltageDouble()*/, tmp_short);
 				}
 			}
 

@@ -46,7 +46,18 @@ short Trigger::GetThreshold()
 	if(GetSeries() == PICO_4000) {
 		return (short)round(GetYFraction()*(double)PS4000_MAX_VALUE);
 	} else if(GetSeries() == PICO_6000) {
-		return (short)round(GetYFraction()*(double)PS6000_MAX_VALUE);
+		return (short)round(GetYFraction()*(double)PS6000_MAX_VALUE/256) << 8;
+	} else {
+		throw "unknown pico series";
+	}
+}
+
+double Trigger::GetThresholdInVolts()
+{
+	if(GetSeries() == PICO_4000) {
+		return GetThreshold() / (double)PS4000_MAX_VALUE * GetChannel()->GetVoltageInVolts();
+	} else if(GetSeries() == PICO_6000) {
+		return GetThreshold() / (double)PS6000_MAX_VALUE * GetChannel()->GetVoltageInVolts();
 	} else {
 		throw "unknown pico series";
 	}
@@ -59,13 +70,16 @@ void Trigger::SetTriggerInPicoscope()
 	// 256 is the minimum number that ever appears;
 	// the multiplication factor in hysteresis is an approximation for noise
 	// to make sure that we don't include noise in the trigger
-	short hysteresis = 256 * 10;
+	short hysteresis;
 
 
 	// we will use just a single condition
 	if(GetSeries() == PICO_6000) {
+		hysteresis = 256 * 2;
 		threshold = GetThreshold();
-		fprintf(stderr, "-- Setting trigger threshold to %d\n", threshold);
+		fprintf(stderr, "-- Setting trigger threshold to %d (%g = %g %% of %g V)\n", threshold,
+			threshold/(double)PS6000_MAX_VALUE*GetChannel()->GetVoltageInVolts(),
+			threshold/(double)PS6000_MAX_VALUE, GetChannel()->GetVoltageInVolts());
 
 		struct tPS6000TriggerConditions conditions6000 = {
 			(ch_index == 0) ? PS6000_CONDITION_TRUE : PS6000_CONDITION_DONT_CARE,
@@ -117,6 +131,7 @@ void Trigger::SetTriggerInPicoscope()
 		}
 	} else {
 		threshold = GetThreshold();
+		hysteresis = 256 * 3;
 		fprintf(stderr, "-- Setting trigger threshold to %d\n", threshold);
 
 		struct tPS4000TriggerConditions conditions4000 = {

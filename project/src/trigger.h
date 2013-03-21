@@ -29,6 +29,7 @@ public:
 	double GetYFraction() const { return y_frac; }
 
 	short  GetThreshold();
+	double GetThresholdInVolts();
 private:
 	Channel *channel;
 	// Measurement *measurement;
