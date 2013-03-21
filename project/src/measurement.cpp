@@ -903,10 +903,15 @@ void Measurement::WriteDataBin(FILE *f, int channel)
 			int length_fetched   = GetLengthFetched();
 			// int length_datachunk = data_8bit.size();
 			for(i=0; i<length_fetched; i+=length_datachunk) {
-				for(j=0; j<length_datachunk && i+j<length_fetched; j++) {
-					data_8bit[j] = data[channel][i+j] >> 8;
+				if(GetSeries() == PICO_6000) {
+					for(j=0; j<length_datachunk && i+j<length_fetched; j++) {
+						data_8bit[j] = data[channel][i+j] >> 8;
+					}
+					size_written = fwrite(data_8bit, sizeof(char), j, f);
+				} else {
+					// TODO: test!!!
+					size_written = fwrite(data[channel]+1, sizeof(data[0][0]), j, f);
 				}
-				size_written = fwrite(data_8bit, sizeof(char), j, f);
 				fflush(f);
 				if(size_written < j) {
 					FILE_LOG(logERROR) << "Measurement::WriteDataBin didn't manage to write to file.";
@@ -939,8 +944,14 @@ void Measurement::WriteDataTxt(FILE *f, int channel)
 		throw "You can only write data for channels 0 - (N-1).";
 	} else {
 		if(GetChannel(channel)->IsEnabled()) {
-			for(i=0; i<GetLengthFetched(); i++) {
-				fprintf(f, "%d\n", data[channel][i]);
+			if(GetSeries() == PICO_6000) {
+				for(i=0; i<GetLengthFetched(); i++) {
+					fprintf(f, "%d\n", data[channel][i]>>8);
+				}
+			} else {
+				for(i=0; i<GetLengthFetched(); i++) {
+					fprintf(f, "%d\n", data[channel][i]);
+				}
 			}
 			// make sure the data is written
 			fflush(f);
