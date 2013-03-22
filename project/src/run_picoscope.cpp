@@ -179,19 +179,30 @@ int main(int argc, char** argv)
 			fprintf(f, "out_bin:    %s\n", x.IsBinaryOutput() ? "yes" : "no");
 			fprintf(f, "out_dat:    %s\n", x.IsTextOutput()   ? "yes" : "no");
 			
-			// FILE *g = fopen("C:\\Temp\\Data\\x.dat", "wt");
+			// triggered (TODO: we could also ask for a single triggered event)
 			if(x.GetNTraces() > 1) {
-				while(meas->GetNextDataBulk() > 0) {
-					for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
-						if(ch[i]->IsEnabled()) {
-							if(x.IsTextOutput()) {
-								meas->WriteDataTxt(ft[i], i); // zero for channel A
-							}
-							if(x.IsBinaryOutput()) {
-								meas->WriteDataBin(fb[i], i); // zero for channel A
+				unsigned int run=0;
+				for(run=0; run<x.GetNRepeats() && !_kbhit(); run++) {
+					//FILE_LOG(logINFO) << "Running experiment nr. " << run+1;
+					if(run>0) {
+						cerr << "\nRepeat #" << run+1 << endl;
+						meas->RunBlock();
+					}
+					while(meas->GetNextDataBulk() > 0) {
+						for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+							if(ch[i]->IsEnabled()) {
+								if(x.IsTextOutput()) {
+									meas->WriteDataTxt(ft[i], i); // zero for channel A
+								}
+								if(x.IsBinaryOutput()) {
+									meas->WriteDataBin(fb[i], i); // zero for channel A
+								}
 							}
 						}
 					}
+				}
+				if(run>1) {
+					fprintf(f, "repeats:    %u\n", run);
 				}
 				// tmp_dbl = meas->GetRatePerSecond();
 				// fprintf(f, "\nrate:       \n");
@@ -203,17 +214,27 @@ int main(int argc, char** argv)
 				// 	fprintf(f, "%f S/s\n", tmp_dbl);
 				// }
 			} else {
-				while(meas->GetNextData() > 0) {
-					for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
-						if(ch[i]->IsEnabled()) {
-							if(x.IsTextOutput()) {
-								meas->WriteDataTxt(ft[i], i); // zero for channel A
-							}
-							if(x.IsBinaryOutput()) {
-								meas->WriteDataBin(fb[i], i); // zero for channel A
+				unsigned int run=0;
+				for(run=0; run<x.GetNRepeats() && !_kbhit(); run++) {
+					if(run>0) {
+						cerr << "\nRepeat #" << run+1 << endl;
+						meas->RunBlock();
+					}
+					while(meas->GetNextData() > 0) {
+						for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
+							if(ch[i]->IsEnabled()) {
+								if(x.IsTextOutput()) {
+									meas->WriteDataTxt(ft[i], i); // zero for channel A
+								}
+								if(x.IsBinaryOutput()) {
+									meas->WriteDataBin(fb[i], i); // zero for channel A
+								}
 							}
 						}
 					}
+				}
+				if(run>1) {
+					fprintf(f, "repeats:    %u\n", run);
 				}
 			}
 
