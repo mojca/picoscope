@@ -27,10 +27,16 @@ int main(int argc, char **argv)
 	char filename_in[1000];
 	long int i_start, i_len;
 	long int i;
-	vector<int16_t> buffer_int16_t;
+	vector<int16_t>  buffer_int16_t;
+	vector<uint16_t> buffer_uint16_t;
+	vector<int8_t>   buffer_int8_t;
+	vector<uint8_t>  buffer_uint8_t;
 
 
-	if(argc > 2 && strcmp(argv[1],"-2")==0) {
+	if(argc < 3) {
+		print_usage();
+		return 0;
+	} else if(argc > 2 && strcmp(argv[1],"-2")==0) {
 		// int16_t *buffer_int16_t;
 		strcpy(filename_in,argv[2]);
 
@@ -66,7 +72,44 @@ int main(int argc, char **argv)
 		}
 
 		buffer_int16_t.clear();
-		fclose(f_in);
+		file.close();
+	} else if(argc > 2 && strcmp(argv[1],"-1")==0) {
+		// int16_t *buffer_int16_t;
+		strcpy(filename_in,argv[2]);
+
+		if(argc == 4) {
+			i_len   = atoi(argv[3]);
+			i_start = 0;
+		} else if(argc == 5) {
+			i_len   = atoi(argv[3]);
+			i_start = atoi(argv[2]);
+		} else {
+			print_usage();
+			exit(0);
+		}
+		ifstream file;
+		file.open(filename_in, ios::binary | ios::in);
+		if (!file) {
+			std::cerr << "Could not open file " << filename_in;
+			throw;
+		}
+		file.seekg (0, ios::end);
+		int length = file.tellg();
+		length = length/sizeof(buffer_int8_t[0]);
+		if(i_len < length) {
+			length = i_len;
+		}
+		buffer_int8_t.resize(i_len);
+		file.seekg (0, ios::beg); // TODO
+		file.read ((char *)&buffer_int8_t[0], sizeof(buffer_int8_t[0])*i_len);
+		file.close();
+
+		for(i=0; i<i_len; i++) {
+			printf("%d\n", buffer_int8_t[i]);
+		}
+
+		buffer_int8_t.clear();
+		file.close();
 	} else {
 
 	strcpy(filename_in,argv[1]);
