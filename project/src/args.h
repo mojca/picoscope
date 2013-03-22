@@ -28,6 +28,7 @@ enum PICO_args {
 	PICO_ARG_RATE,     // --dt
 	PICO_ARG_TRIGGER,  // --trigger | --trig
 	PICO_ARG_SIGNAL_SQUARE, // --square
+	PICO_ARG_SPECIAL_N_GAMMA, // --ngamma <i2_offset_from_trigger> <i2_length>
 	PICO_ARG_OTHER,
 	PICO_ARG_UNKNOWN,
 	PICO_NOT_ARG
@@ -52,6 +53,8 @@ static struct gen_table PICO_arguments[] = {
 	{ "trig",    PICO_ARG_TRIGGER  },
 	{ "name",    PICO_ARG_FILENAME },
 	{ "square",  PICO_ARG_SIGNAL_SQUARE}, // --square <XmV> <Xns>
+	//
+	{ "ngamma",  PICO_ARG_SPECIAL_N_GAMMA}, // --ngamma <i2_offset_from_trigger> <i2_length>
 	{ NULL,      PICO_ARG_OTHER    }
 };
 
@@ -85,14 +88,16 @@ public:
 	Measurement* GetMeasurement() const { return measurement; };
 
 	void SetFilename(char *);
-	char* GetFilename()       const { return filename; }
-	char* GetFilenameBinary() const { return filename_binary[4]; }
-	char* GetFilenameText()   const { return filename_text[4]; }
-	char* GetFilenameMeta()   const { return filename_meta; }
+	char* GetFilename()        const { return filename; }
+	char* GetFilenameBinary()  const { return filename_binary[4]; }
+	char* GetFilenameText()    const { return filename_text[4]; }
+	char* GetFilenameMeta()    const { return filename_meta; }
+	char* GetFilenameSpecial() const { return filename_special[4]; }
 
 	// TODO: this should throw an error if i is not between 0 and 3
-	char* GetFilenameBinary(int i) const { return filename_binary[i]; }
-	char* GetFilenameText(int i)   const { return filename_text[i]; }
+	char* GetFilenameBinary(int i)  const { return filename_binary[i]; }
+	char* GetFilenameText(int i)    const { return filename_text[i]; }
+	char* GetFilenameSpecial(int i) const { return filename_special[i]; }
 
 
 	PICO_VOLTAGE ParseVoltage(char *);
@@ -119,16 +124,22 @@ public:
 
 	void ParseAndSetSquareSignalGenerator(char *, char *);
 
+	void ParseAndSetSpecialNGamma(char *, char *);
+	bool IsSpecialNGamma() const { return is_special_n_gamma; };
+	unsigned long GetSpecialNGammaIntegralOffsetFromTrigger() const { return special_n_gamma_i2_offset_from_trigger; };
+	unsigned long GetSpecialNGammaIntegralLength() const { return special_n_gamma_i2_length; };
+
 	void ParseAndSetChannels(char *);
 
 	void PrintUsage();
 	bool IsJustHelp() const { return is_just_help; };
 	bool IsTextOutput() const { return is_text_output; };
 	bool IsBinaryOutput() const { return is_binary_output; };
+	bool IsSpecialOutput() const { return is_special_output; };
 
 private:
 	Measurement *measurement;
-	char *filename, *filename_binary[5], *filename_text[5], *filename_meta;
+	char *filename, *filename_binary[5], *filename_text[5], *filename_meta, *filename_special[5];
 	unsigned long length;
 	unsigned long ntraces;
 	unsigned long nrepeats;
@@ -136,11 +147,17 @@ private:
 	bool is_triggered;
 	double x_frac, y_frac;
 	bool is_just_help;
-	bool is_binary_output, is_text_output;
+	bool is_binary_output, is_text_output, is_special_output;
 	// bool channel_enabled[PICOSCOPE_N_CHANNELS];
 
 	PICO_VOLTAGE generator_voltage;
 	// unsigned long generator_ns;
+
+	// special functions
+	// n-gamma discrimination parameters
+	bool is_special_n_gamma;
+	unsigned long special_n_gamma_i2_offset_from_trigger;
+	unsigned long special_n_gamma_i2_length;
 
 	double GetTriggerXFraction() const { return x_frac; }
 	double GetTriggerYFraction() const { return y_frac; }

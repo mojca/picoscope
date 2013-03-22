@@ -13,6 +13,8 @@
 // //	PS_MAX_TRIGGER_SOURCES
 // } PICO_CHANNEL;
 
+#include <vector>
+
 #include "picoscope.h"
 #include "channel.h"
 #include "trigger.h"
@@ -86,6 +88,8 @@ public:
 	unsigned long GetNextDataBulk();
 	void WriteDataBin(FILE*,int);
 	void WriteDataTxt(FILE*,int);
+
+	std::vector<int8_t> GetDataVector(int channel, int index);
 
 	unsigned long GetNextIndex() const { return next_index; };
 	void SetLengthFetched(unsigned long l);

@@ -17,6 +17,8 @@
 #include "ps6000Api.h"
 // #include "picoStatus.h"
 
+#include "analysis/n-gamma.h"
+
 #include <conio.h>
 // #include <stdio.h>
 
@@ -103,6 +105,8 @@ int main(int argc, char** argv)
 
 			FILE *f = NULL;
 			FILE *fb[4] = {NULL,NULL,NULL,NULL}, *ft[4] = {NULL,NULL,NULL,NULL};
+			// files for special purposes
+			FILE *fsp[4] = {NULL, NULL, NULL, NULL};
 
 			struct tm *current;
 			time_t now;
@@ -121,6 +125,12 @@ int main(int argc, char** argv)
 						fb[i] = fopen(x.GetFilenameBinary(i), "wb");
 						if(fb[i] == NULL) {
 							throw("Unable to open binary file.\n"); // TODO: write filename
+						}
+					}
+					if(x.IsSpecialOutput()) {
+						fsp[i] = fopen(x.GetFilenameSpecial(i), "wt");
+						if(fsp[i] == NULL) {
+							throw("Unable to open specially text file.\n"); // TODO: write filename
 						}
 					}
 				}
@@ -182,13 +192,14 @@ int main(int argc, char** argv)
 			// triggered (TODO: we could also ask for a single triggered event)
 			if(x.GetNTraces() > 1) {
 				unsigned int run=0;
+				unsigned int n_traces;
 				for(run=0; run<x.GetNRepeats() && !_kbhit(); run++) {
 					//FILE_LOG(logINFO) << "Running experiment nr. " << run+1;
 					if(run>0) {
 						cerr << "\nRepeat #" << run+1 << endl;
 						meas->RunBlock();
 					}
-					while(meas->GetNextDataBulk() > 0) {
+					while((n_traces = meas->GetNextDataBulk()) > 0) {
 						for(i=0; i<PICOSCOPE_N_CHANNELS; i++) {
 							if(ch[i]->IsEnabled()) {
 								if(x.IsTextOutput()) {
@@ -196,6 +207,11 @@ int main(int argc, char** argv)
 								}
 								if(x.IsBinaryOutput()) {
 									meas->WriteDataBin(fb[i], i); // zero for channel A
+								}
+								if(x.IsSpecialNGamma()) {
+									for(unsigned int j=0; j<n_traces; j++) {
+										calculate_and_write_integrals_i(meas->GetDataVector(i,j), x.GetSpecialNGammaIntegralOffsetFromTrigger(), x.GetSpecialNGammaIntegralLength(), fsp[i]);
+									}
 								}
 							}
 						}
@@ -246,6 +262,9 @@ int main(int argc, char** argv)
 				}
 				if(fb[i] != NULL) {
 					fclose(fb[i]);
+				}
+				if(fsp[i] != NULL) {
+					fclose(fsp[i]);
 				}
 			}
 

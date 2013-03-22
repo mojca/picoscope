@@ -39,11 +39,19 @@ Args::Args()
 	is_just_help     = false;
 	is_binary_output = false;
 	is_text_output   = false;
+	is_special_output = false;
 
 	for(i=0; i<5; i++) {
-		filename_binary[i] = NULL;
-		filename_text[i]   = NULL;
+		filename_binary[i]  = NULL;
+		filename_text[i]    = NULL;
+		filename_special[i] = NULL;
 	}
+
+	// special
+	// n-gamma
+	is_special_n_gamma = false;
+	special_n_gamma_i2_offset_from_trigger = 0;
+	special_n_gamma_i2_length = 0;
 }
 
 Args::~Args()
@@ -53,8 +61,9 @@ Args::~Args()
 	if(filename      != NULL) free(filename);
 	if(filename_meta != NULL) free(filename_meta);
 	for(i=0; i<5; i++) {
-		if(filename_binary[i] != NULL) free(filename_binary[i]);
-		if(filename_text[i]   != NULL) free(filename_text[i]  );
+		if(filename_binary[i]  != NULL) free(filename_binary[i] );
+		if(filename_text[i]    != NULL) free(filename_text[i]   );
+		if(filename_special[i] != NULL) free(filename_special[i]);
 	}
 }
 
@@ -83,6 +92,9 @@ void Args::PrintUsage()
 	std::cout << "      # y between (-1,1) represents trigger point on y axis and implies direction\n";
 	std::cout << "      # y < 0 triggers on falling signal; y > 0 on raising signal\n";
 	std::cout << "    --n <number>                       # number of traces\n";
+	std::cout << "\n";
+	std::cout << "  special:\n";
+	std::cout << "    --ngamma <i2_offset_from_trigger> <i2_length> # used for integral in n-gamma discrimination\n";
 }
 
 void Args::parse_options(int argc, char** argv, Measurement *m)
@@ -146,6 +158,10 @@ void Args::parse_options(int argc, char** argv, Measurement *m)
 				// ParseAndSetSignalGeneratorTime(argv[i+2]);
 				i+=2;
 				break;
+			case PICO_ARG_SPECIAL_N_GAMMA:
+				ParseAndSetSpecialNGamma(argv[i+1],argv[i+2]);
+				i+=2;
+				break;
 			case PICO_NOT_ARG:
 				fprintf(stderr, "WARNING: this is not an argument '%s'\n", argv[i]);
 				throw;
@@ -174,26 +190,30 @@ void Args::SetFilename(char *name)
 	filename_meta   = (char *)malloc(strlen(name)+4);
 
 	for(i=0; i<5; i++) {
-		if(filename_binary[i] != NULL) free(filename_binary[i]);
-		if(filename_text[i]   != NULL) free(filename_text[i]  );
+		if(filename_binary[i]  != NULL) free(filename_binary[i] );
+		if(filename_text[i]    != NULL) free(filename_text[i]   );
+		if(filename_special[i] != NULL) free(filename_special[i]);
 
-		filename_binary[i] = (char *)malloc(strlen(name)+5);
-		filename_text[i]   = (char *)malloc(strlen(name)+5);
+		filename_binary[i]  = (char *)malloc(strlen(name)+5);
+		filename_text[i]    = (char *)malloc(strlen(name)+5);
+		filename_special[i] = (char *)malloc(strlen(name)+8);
 	}
 
 	if((filename != NULL) && (filename_meta != NULL)) {
 		strcpy (filename, name);
-		sprintf(filename_meta,   "%s.txt", filename);
-		sprintf(filename_binary[4], "%s.bin", filename);
-		sprintf(filename_text[4],   "%s.dat", filename);
+		sprintf(filename_meta,       "%s.txt", filename);
+		sprintf(filename_binary[4],  "%s.bin", filename);
+		sprintf(filename_text[4],    "%s.dat", filename);
+		sprintf(filename_special[4], "%s.sp.dat", filename);
 	} else {
 		throw("Unable to allocate memory.\n");
 	}
 
 	for(i=0; i<4; i++) {
 		if((filename_binary[i] != NULL) && (filename_text[i] != NULL)) {
-			sprintf(filename_binary[i], "%s%c.bin", filename, 'A'+i);
-			sprintf(filename_text[i],   "%s%c.dat", filename, 'A'+i);
+			sprintf(filename_binary[i],  "%s%c.bin",    filename, 'A'+i);
+			sprintf(filename_text[i],    "%s%c.dat",    filename, 'A'+i);
+			sprintf(filename_special[i], "%s%c.sp.dat", filename, 'A'+i);
 		} else {
 			throw("Unable to allocate memory.\n");
 		}
@@ -434,4 +454,13 @@ void Args::ParseAndSetSquareSignalGenerator(char *str_voltage, char *str_freq)
 	}
 
 	GetMeasurement()->AddSignalGeneratorSquare(peak_to_peak_in_microvolts, (float)frequency);
+}
+
+void Args::ParseAndSetSpecialNGamma(char *str_i2_offset_from_trigger, char *str_i2_length)
+{
+	special_n_gamma_i2_offset_from_trigger = (unsigned long)atoi(str_i2_offset_from_trigger);
+	special_n_gamma_i2_length              = (unsigned long)atoi(str_i2_length);
+	// TODO: at least some basic test to make sure that these values make sense (they need to be smaller than l for example)
+	is_special_n_gamma = true;
+	is_special_output = true;
 }

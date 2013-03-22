@@ -933,6 +933,37 @@ void Measurement::WriteDataBin(FILE *f, int channel)
 	std::cerr << "OK ("<< t.GetSecondsDouble() <<"s)\n";
 }
 
+// TODO: change this to double
+std::vector<int8_t> Measurement::GetDataVector(int channel, int index)
+{
+	int i;
+
+	// Timing t;
+	// t.Start();
+	// TODO: test if index exists
+	if(channel < 0 || channel >= GetNumberOfChannels()) {
+		throw "You can only write data for channels 0 - (N-1).";
+	} else {
+		unsigned int l = GetLength();
+		std::vector<int8_t> vecdata(l, 0);
+		if(GetChannel(channel)->IsEnabled()) {
+			if(GetSeries() == PICO_6000) {
+				for(i=0; i<l; i++) {
+					vecdata[i] = data[channel][i+index*l]>>8;
+				}
+			} else {
+				for(i=0; i<l; i++) {
+					vecdata[i] = data[channel][i+index*l];
+				}
+			}
+		} else {
+			// TODO: error!
+		}
+		return vecdata;
+	}
+	// t.Stop();
+}
+
 void Measurement::WriteDataTxt(FILE *f, int channel)
 {
 	int i;
