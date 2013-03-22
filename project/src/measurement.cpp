@@ -770,7 +770,7 @@ unsigned long Measurement::GetNextDataBulk()
 	}
 	// fetch data
 	// length_of_trace_fetched = length_of_trace_askedfor;
-	std::cerr << "Get data for traces " << GetNextIndex() << "-" << GetNextIndex()+traces_asked_for << " (" << 100.0*(GetNextIndex()+traces_asked_for)/GetNTraces() << "%%) ... ";
+	std::cerr << "Get data for traces " << GetNextIndex() << "-" << GetNextIndex()+traces_asked_for << " (" << 100.0*(GetNextIndex()+traces_asked_for)/GetNTraces() << "%) ... ";
 	overflow = new short[traces_asked_for];
 	memset(overflow, 0, traces_asked_for*sizeof(short));
 	// std::cerr << "-- x1\n";
