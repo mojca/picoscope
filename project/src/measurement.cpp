@@ -536,6 +536,7 @@ void Measurement::RunBlock()
 	}
 
 	t.Start();
+	GetPicoscope()->SetReady(false);
 	if(GetSeries() == PICO_4000) {
 		GetPicoscope()->SetStatus(ps4000RunBlock(
 			GetHandle(),              // handle
