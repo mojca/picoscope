@@ -209,9 +209,16 @@ int main(int argc, char** argv)
 									meas->WriteDataBin(fb[i], i); // zero for channel A
 								}
 								if(x.IsSpecialNGamma()) {
+									Timing t1;
+									t1.Start();
+									std::cerr << "Calculating n-gamma ... ";
+									unsigned int p1=x.GetSpecialNGammaIntegralOffsetFromTrigger();
+									unsigned int p2=x.GetSpecialNGammaIntegralLength();
 									for(unsigned int j=0; j<n_traces; j++) {
-										calculate_and_write_integrals_i(meas->GetDataVector(i,j), x.GetSpecialNGammaIntegralOffsetFromTrigger(), x.GetSpecialNGammaIntegralLength(), fsp[i]);
+										calculate_and_write_integrals_i(meas->GetDataVector(i,j), p1, p2, fsp[i]);
 									}
+									t1.Stop();
+									std::cerr << "("<< t1.GetSecondsDouble() <<"s)\n";
 								}
 							}
 						}
