@@ -21,6 +21,7 @@ enum PICO_args {
 	PICO_ARG_TEXT,     // --dat | --text
 	PICO_ARG_LENGTH,   // --length | --l
 	PICO_ARG_NTRACES,  // --n
+	PICO_ARG_NREPEATS, // --repeat <number of repeats>
 	PICO_ARG_CHANNEL,  // --ch
 	PICO_ARG_FILENAME, // --name
 	PICO_ARG_VOLTAGE,  // --voltage | --U
@@ -41,6 +42,7 @@ static struct gen_table PICO_arguments[] = {
 	{ "l",       PICO_ARG_LENGTH   },
 	{ "length",  PICO_ARG_LENGTH   },
 	{ "n",       PICO_ARG_NTRACES  }, // --n <number of traces>
+	{ "repeat",  PICO_ARG_NREPEATS }, // --repeat <number of repeats>
 	{ "ch",      PICO_ARG_CHANNEL  },
 	{ "channel", PICO_ARG_CHANNEL  },
 	{ "U",       PICO_ARG_VOLTAGE  }, // --U <XmV>
@@ -108,6 +110,9 @@ public:
 	void ParseAndSetNTraces(char *);
 	unsigned long GetNTraces() const { return ntraces; };
 
+	void ParseAndSetNRepeats(char *);
+	unsigned long GetNRepeats() const { return nrepeats; };
+
 	bool IsTriggered() const { return is_triggered; };
 	void ParseAndSetTrigger(char *, char *);
 	Trigger* GetTrigger(Channel *ch);
@@ -126,6 +131,7 @@ private:
 	char *filename, *filename_binary[5], *filename_text[5], *filename_meta;
 	unsigned long length;
 	unsigned long ntraces;
+	unsigned long nrepeats;
 	PICO_VOLTAGE voltage;
 	bool is_triggered;
 	double x_frac, y_frac;

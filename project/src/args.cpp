@@ -33,6 +33,7 @@ Args::Args()
 	SetLength(0);
 	SetVoltage(U_MAX);
 	ntraces          = 1;
+	nrepeats         = 1;
 	filename         = NULL;
 	filename_meta    = NULL;
 	is_just_help     = false;
@@ -63,6 +64,7 @@ void Args::PrintUsage()
 	std::cout << "  (obligatory options)\n";
 	std::cout << "    --name <str>  # filename without extention (ext. is added automatically)\n";
 	std::cout << "    --l <number> | --length <number>   # length of single trace\n";
+	std::cout << "    --repeat <number>                  # repeat the same measurement number of times\n";
 	std::cout << "    --U <str> | --voltage <str>        # voltage range\n";
 	std::cout << "      allowed values: 50mV, 100mV, 200mV, 500mV, 1V, 2V, 5V, 10V, 20V\n";
 	std::cout << "\n";
@@ -120,6 +122,9 @@ void Args::parse_options(int argc, char** argv, Measurement *m)
 				break;
 			case PICO_ARG_NTRACES:
 				ParseAndSetNTraces(argv[++i]);
+				break;
+			case PICO_ARG_NREPEATS:
+				ParseAndSetNRepeats(argv[++i]);
 				break;
 			case PICO_ARG_CHANNEL:
 				ParseAndSetChannels(argv[++i]);
@@ -364,6 +369,16 @@ void Args::ParseAndSetNTraces(char *str)
 		throw "something is wrong; there are no traces to fetch.\n";
 	} else {
 		std::cerr << "    (fetching multiple traces: " << ntraces << ")\n";
+	}
+}
+
+void Args::ParseAndSetNRepeats(char *str)
+{
+	nrepeats = (unsigned long)atoi(str);
+	if(nrepeats == 0) {
+		throw "something is wrong; number of repeats should be 1 or more.\n";
+	} else {
+		std::cerr << "    (repeating the fetching multiple times: " << nrepeats << ")\n";
 	}
 }
 
