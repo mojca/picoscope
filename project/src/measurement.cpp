@@ -542,6 +542,7 @@ void Measurement::RunBlock()
 	t.Start();
 	GetPicoscope()->SetReady(false);
 	if(GetSeries() == PICO_4000) {
+		FILE_LOG(logDEBUG2) << "ps4000RunBlock(handle=" << GetHandle() << ", noOfPreTriggerSamples=" << GetLengthBeforeTrigger() << ", noOfPostTriggerSamples=" << GetLengthAfterTrigger() << ", timebase=" << timebase << ", oversample=1, *timeIndisposedMs=NULL, segmentIndex=0, lpReady=CallBackBlock, *pParameter=NULL)";
 		GetPicoscope()->SetStatus(ps4000RunBlock(
 			GetHandle(),              // handle
 			GetLengthBeforeTrigger(), // noOfPreTriggerSamples
@@ -615,6 +616,7 @@ unsigned long Measurement::GetNextData()
 				throw "Unable to get data. Memory is not allocated.";
 			}
 			if(GetSeries() == PICO_4000) {
+				FILE_LOG(logDEBUG2) << "ps4000SetDataBuffer(handle=" << GetHandle() << ", channel=" << i << ", *buffer=<data[i]>, bufferLength=" << GetMaxTraceLengthToFetch() << ")";
 				GetPicoscope()->SetStatus(ps4000SetDataBuffer(
 					GetHandle(),                  // handle
 					(PS4000_CHANNEL)i,            // channel
