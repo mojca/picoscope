@@ -553,15 +553,15 @@ const char* Picoscope::PicoscopeException::GetVerboseErrorMessage() const
 			// 		}
 			// 	case PICO_6000 :
 			// 		switch(errorNumber) {
-						case PICO_OK                             : return "The PicoScope 6000 is functioning correctly.";
+						case PICO_OK                             : return "The PicoScope 4000/6000 is functioning correctly.";
 						// TODO: PS4000_MAX_UNITS should resolve to a valid number
-						case PICO_MAX_UNITS_OPENED               : return "An attempt has been made to open more than PS6000_MAX_UNITS. (Reserved.)";
-						case PICO_NOT_FOUND                      : return "No PicoScope 6000 could be found";
-						case PICO_NOT_RESPONDING                 : return "The PicoScope 6000 is not responding to commands from the PC";
-						case PICO_CONFIG_FAIL                    : return "The configuration information in the PicoScope 6000 has become corrupt or is missing";
+						case PICO_MAX_UNITS_OPENED               : return "An attempt has been made to open more than PS4000/6000_MAX_UNITS. (Reserved.)";
+						case PICO_NOT_FOUND                      : return "No PicoScope 4000/6000 could be found";
+						case PICO_NOT_RESPONDING                 : return "The PicoScope 4000/6000 is not responding to commands from the PC";
+						case PICO_CONFIG_FAIL                    : return "The configuration information in the PicoScope 4000/6000 has become corrupt or is missing";
 
 						case PICO_INVALID_ANALOGUE_OFFSET        : return "An impossible analogue offset value was specified in ps6000SetChannel";
-						case PICO_PLL_LOCK_FAILED                : return "Unable to configure the PicoScope 6000";
+						case PICO_PLL_LOCK_FAILED                : return "Unable to configure the PicoScope 4000/6000";
 
 						default: return "unknown error.\n";
 			// 		}
