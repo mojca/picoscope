@@ -189,6 +189,7 @@ void Measurement::SetTimebaseInPicoscope()
 
 	// 4000
 	if(GetSeries() == PICO_4000) {
+		FILE_LOG(logDEBUG2) << "ps4000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
 		GetPicoscope()->SetStatus(ps4000GetTimebase2(
 			GetHandle(),       // handle
 			GetTimebase(),     // timebase
@@ -648,7 +649,7 @@ unsigned long Measurement::GetNextData()
 			PS4000_RATIO_MODE_NONE,     // downSampleRatioMode
 			0,                          // segmentIndex
 			&overflow));                // *overflow
-		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "ps4000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
+		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "\n";
 	} else {
 		FILE_LOG(logDEBUG2) << "ps6000GetValues(handle=" << GetHandle() << ", startIndex=" << GetNextIndex() << ", *noOfSamples=" << length_of_trace_fetched << ", downSampleRatio=1, downSampleRatioMode=PS6000_RATIO_MODE_NONE, segmentIndex=0, *overflow)";
 		GetPicoscope()->SetStatus(ps6000GetValues(
@@ -661,8 +662,7 @@ unsigned long Measurement::GetNextData()
 			PS6000_RATIO_MODE_NONE,     // downSampleRatioMode
 			0,                          // segmentIndex
 			&overflow));                // *overflow
-		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "ps6000GetTimebase2(handle=" << GetHandle() << ", timebase=" << GetTimebase() << ", length=" << GetLength() << ", &time_interval_ns, oversample=0, maxSamples=NULL, segmentIndex=0)";
-		
+		FILE_LOG(logDEBUG2) << "-> length_of_trace_fetched=" << length_of_trace_fetched << "\n";
 	}
 	t.Stop();
 	if(GetPicoscope()->GetStatus() != PICO_OK) {
