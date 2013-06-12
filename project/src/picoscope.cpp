@@ -116,13 +116,27 @@ PICO_STATUS Picoscope::Close()
 	}
 
 	if(GetSeries() == PICO_4000) {
+		FILE_LOG(logDEBUG2) << "ps4000Stop(handle=" << handle << ")";
 		return_status = ps4000Stop(handle);
 	} else {
+		FILE_LOG(logDEBUG2) << "ps6000Stop(handle=" << handle << ")";
 		return_status = ps6000Stop(handle);
 	}
 
 	if(return_status == PICO_OK) {
-		var_is_open = false;
+		if(GetSeries() == PICO_4000) {
+			FILE_LOG(logDEBUG2) << "ps4000CloseUnit(handle=" << handle << ")";
+			return_status = ps4000CloseUnit(handle);
+		} else {
+			FILE_LOG(logDEBUG2) << "ps6000CloseUnit(handle=" << handle << ")";
+			return_status = ps6000CloseUnit(handle);
+		}
+
+		if(return_status == PICO_OK) {
+			var_is_open = false;
+		} else {
+			throw PicoscopeException(return_status);
+		}
 	} else {
 		throw PicoscopeException(return_status);
 	}
