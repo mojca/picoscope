@@ -261,8 +261,8 @@ int main(int argc, char** argv)
 			cerr << "Timing: " << t.GetSecondsDouble() << "s\n";
 		}
 
-		delete pico;
-		delete meas;
+		delete pico; pico = NULL;
+		delete meas; meas = NULL;
 
 
 	} catch(Picoscope::PicoscopeException& ex) {
