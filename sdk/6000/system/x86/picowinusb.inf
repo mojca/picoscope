@@ -2,7 +2,7 @@
 ; PICOWINUSB.INF
 ;	-Installs winusb support for Pico USB devices;
 ;
-; Copyright © 1995-2011, Pico Technology Ltd
+; Copyright © 1995-2013, Pico Technology Ltd
 ;
 ;	www.picotech.com	www.drdaq.com
 ; 
@@ -13,8 +13,8 @@ Signature = "$Windows NT$"
 Class = DataAcquisitionDevices
 ClassGuid = {745DD1A8-FCA4-4659-9DF2-954176705158}
 Provider = %Pico% 
-DriverVer=08/16/2011,2.0.3.5
 CatalogFile=picowinusb.cat
+DriverVer=04/05/2013,2.0.3.8
 
 ; ========== Manufacturer/Models sections =========== 
 
@@ -31,6 +31,9 @@ CatalogFile=picowinusb.cat
 %USB\VID_0CE9&PID_1014.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1014
 %USB\VID_0CE9&PID_1015.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1015
 %USB\VID_0CE9&PID_1016.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1016
+%USB\VID_0CE9&PID_1017.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1017
+%USB\VID_0CE9&PID_FFF0.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_FFF0
+%USB\VID_0CE9&PID_1019.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1019
 
 [PicoDevices.NTamd64]
 %USB\VID_0CE9&PID_1000.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1000
@@ -52,7 +55,9 @@ CatalogFile=picowinusb.cat
 %USB\VID_0CE9&PID_1014.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1014
 %USB\VID_0CE9&PID_1015.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1015
 %USB\VID_0CE9&PID_1016.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1016
-
+%USB\VID_0CE9&PID_1017.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1017
+%USB\VID_0CE9&PID_1019.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_1019
+%USB\VID_0CE9&PID_FFF0.DeviceDesc%=USB_Install, USB\VID_0CE9&PID_FFF0
 
 [PicoDevices.NTIA64]
 
@@ -92,7 +97,7 @@ KmdfService=WINUSB, WinUsb_Install
 UmdfServiceOrder=WINUSB
 
 [WinUSB_Install]
-KmdfLibraryVersion=1.5
+KmdfLibraryVersion=1.9
 
 [USB_Install.HW]
 AddReg=Dev_AddReg
@@ -149,6 +154,9 @@ USB\VID_0CE9&PID_1013.DeviceDesc="Pico Pulse Generator"
 USB\VID_0CE9&PID_1014.DeviceDesc="Pico USB DrDAQ"
 USB\VID_0CE9&PID_1015.DeviceDesc="PicoLog Current Monitoring"
 USB\VID_0CE9&PID_1016.DeviceDesc="PicoScope 2000 series PC Oscilloscope"
+USB\VID_0CE9&PID_1017.DeviceDesc="PicoScope 9300 PC Sampling Oscilloscope"
+USB\VID_0CE9&PID_1019.DeviceDesc="PicoScope 5000 series PC Oscilloscope"
+USB\VID_0CE9&PID_FFF0.DeviceDesc="Logic Analyser Testing Device"
 
 WinUSB_SvcDesc="WinUSB driver"
 ClassName="Pico Technology Instruments"
