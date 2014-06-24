@@ -1,0 +1,125 @@
+﻿;---------------------------------------------------------------;
+; PICOPP.INF
+;	-Installs support for Pico USB devices;
+;
+; Copyright © 1995-2011, Pico Technology Ltd
+;
+;	www.picotech.com	www.drdaq.com 
+; 
+;---------------------------------------------------------------;
+
+[Version]
+Signature="$CHICAGO$"
+Class=USB
+ClassGuid = {36fc9e60-c465-11cf-8056-444553540000}
+provider=%Pico%
+DriverVer=03/22/2011,1.13.4.0
+CatalogFile=picopp.cat
+
+[Manufacturer]
+%Pico%=Pico,NT.6.0,NTamd64,NTIA64
+
+[Pico.NTIA64]
+[Pico.NTamd64]
+
+[Pico]
+%USB\VID_0CE9&PID_0100.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_0100
+%USB\VID_0CE9&PID_1000.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1000
+%USB\VID_0CE9&PID_1001.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1001
+%USB\VID_0CE9&PID_1002.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1002
+%USB\VID_0CE9&PID_1003.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1003
+%USB\VID_0CE9&PID_1004.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1004
+%USB\VID_0CE9&PID_1005.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1005
+%USB\VID_0CE9&PID_1006.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1006
+%USB\VID_0CE9&PID_1007.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1007
+%USB\VID_0CE9&PID_1008.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1008
+%USB\VID_0CE9&PID_1009.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_1009
+%USB\VID_0CE9&PID_100A.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_100A
+%USB\VID_0CE9&PID_100D.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_100D
+%USB\VID_0CE9&PID_100F.DeviceDesc%=PICOPP.Dev, USB\VID_0CE9&PID_100F
+
+[Pico.NT.6.0]
+%USB\VID_0CE9&PID_0100.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_0100
+%USB\VID_0CE9&PID_1000.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1000
+%USB\VID_0CE9&PID_1001.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1001
+%USB\VID_0CE9&PID_1002.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1002
+%USB\VID_0CE9&PID_1003.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1003
+%USB\VID_0CE9&PID_1004.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1004
+%USB\VID_0CE9&PID_1005.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1005
+%USB\VID_0CE9&PID_1006.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1006
+%USB\VID_0CE9&PID_1007.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1007
+%USB\VID_0CE9&PID_1008.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1008
+%USB\VID_0CE9&PID_1009.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_1009
+%USB\VID_0CE9&PID_100A.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_100A
+%USB\VID_0CE9&PID_100D.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_100D
+%USB\VID_0CE9&PID_100F.DeviceDesc%=PICOPP.Dev.NT.6.0, USB\VID_0CE9&PID_100F
+
+
+[SourceDisksNames]
+1=%SourceDiskName%,disk1
+[SourceDisksFiles]
+picopp.sys=1
+
+[DestinationDirs]
+PICOPP.Files.Ext = 10,System32\Drivers
+
+[PICOPP.Files.Ext]
+picopp.sys
+
+[PICOPP.AddService]
+DisplayName    = %PICOPP.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\System32\Drivers\picopp.sys
+LoadOrderGroup = Base
+
+;---------------------------------------------------------------;
+; XP
+;---------------------------------------------------------------;
+
+[PICOPP.Dev.NT]
+;CopyFiles=PICOPP.Files.Ext
+AddReg=PICOPP.AddReg
+
+[PICOPP.Dev.NT.Services]
+Addservice = PICOPP, 0x00000002, PICOPP.AddService
+
+[PICOPP.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,picopp.sys
+
+;---------------------------------------------------------------;
+; Vista and Later
+;---------------------------------------------------------------;
+[PICOPP.Dev.NT.6.0]
+CopyFiles=PICOPP.Files.Ext
+AddReg=PICOPP.AddReg
+
+[PICOPP.Dev.NT.6.0.Services]
+Addservice = PICOPP, 0x00000002, PICOPP.AddService
+
+
+;---------------------------------------------------------------;
+;
+;---------------------------------------------------------------;
+[Strings]
+Pico="Pico Technology Ltd"
+SourceDiskName="./"
+USB\VID_0CE9&PID_0100.DeviceDesc="Pico Parallel Port"
+USB\VID_0CE9&PID_1000.DeviceDesc="Pico USB TC-08"
+USB\VID_0CE9&PID_1001.DeviceDesc="PicoScope 3000 series PC Oscilloscope"
+USB\VID_0CE9&PID_1002.DeviceDesc="Pico USB ADC11"
+USB\VID_0CE9&PID_1003.DeviceDesc="Pico High Resolution Data Logger"
+USB\VID_0CE9&PID_1004.DeviceDesc="Blackbird"
+USB\VID_0CE9&PID_1005.DeviceDesc="Phantom"
+USB\VID_0CE9&PID_1006.DeviceDesc="Pico Humidiprobe"
+USB\VID_0CE9&PID_1007.DeviceDesc="PicoScope 2000 series PC Oscilloscope"
+USB\VID_0CE9&PID_1008.DeviceDesc="PicoScope 5000 series PC Oscilloscope"
+USB\VID_0CE9&PID_1009.DeviceDesc="PicoScope 4000 series PC Oscilloscope"
+USB\VID_0CE9&PID_100A.DeviceDesc="Epic"
+USB\VID_0CE9&PID_100D.DeviceDesc="Pico USB TC-08"
+USB\VID_0CE9&PID_100F.DeviceDesc="PicoScope 4000 series PC Oscilloscope"
+
+PICOPP.SvcDesc="Pico Technology Ltd USB Driver (picopp.sys)"
+RUNONCEKEYNAME="Software\Microsoft\Windows\CurrentVersion\RunOnce"

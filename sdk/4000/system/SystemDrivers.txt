@@ -4,6 +4,6 @@ by the PicoScope or PicoLog installer.
 
 In order to install kernel drivers manually run dpinst.exe
 which can be found in one of the subfolders.
- 
-For x86 you will also need to copy picopp.inf to SYSTEMROOT\inf 
-and picopp.sys to SYSTEMROOT\system32\drivers. 
+
+For x86 you will also need to copy picopp.inf to SYSTEMROOT\inf
+and picopp.sys to SYSTEMROOT\system32\drivers.
