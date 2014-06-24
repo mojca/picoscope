@@ -22,9 +22,10 @@ add_executable(run_picoscope src/run_picoscope.cpp
 add_executable(bin2dat util/bin2dat.cpp)
 # set_target_properties(bin2dat PROPERTIES OUTPUT_NAME "bin2dat${CMAKE_EXECUTABLE_SUFFIX}")
 # set_target_properties(bin2dat PROPERTIES SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
-if (WIN32)
+
+if (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
 set_target_properties(bin2dat PROPERTIES SUFFIX ".exe")
-endif (WIN32)
+endif (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
 # not used yet
 option(USE_PICOSCOPE_4000 "Use support for PicoScope 4000 Series" ON)
