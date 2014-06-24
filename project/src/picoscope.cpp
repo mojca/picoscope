@@ -167,8 +167,8 @@ void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 void Picoscope::MyFunction(unsigned long trace_length)
 {
 	int i;
-	unsigned long max_samples;
-	long time_in_ms = 0;
+	uint32_t max_samples;
+	int32_t time_in_ms = 0;
 	int segment = 0;
 
 	/* ps6000SetChannel */
@@ -228,7 +228,7 @@ void Picoscope::MyFunction(unsigned long trace_length)
 	while (!Picoscope::IsReady() && !_kbhit()) {
 		Sleep(0);
 	}
-	unsigned long N_of_samples;
+	uint32_t N_of_samples;
 	short overflow;
 	printf("get values\n");
 	N_of_samples = trace_length;
@@ -433,7 +433,6 @@ const char* Picoscope::PicoscopeException::GetErrorMessage() const
 		case PICO_PLL_LOCK_FAILED                  : return "PICO_PLL_LOCK_FAILED"                  ; // 0x00000051UL
 		case PICO_ANALOG_BOARD                     : return "PICO_ANALOG_BOARD"                     ; // 0x00000052UL
 		case PICO_CONFIG_FAIL_AWG                  : return "PICO_CONFIG_FAIL_AWG"                  ; // 0x00000053UL
-		case PICO_INITIALIZE_FPGA                  : return "PICO_INITIALIZE_FPGA"                  ; // 0x00000054UL
 		case PICO_EXTERNAL_FREQUENCY_INVALID       : return "PICO_EXTERNAL_FREQUENCY_INVALID"       ; // 0x00000056UL
 		case PICO_CLOCK_CHANGE_ERROR               : return "PICO_CLOCK_CHANGE_ERROR"               ; // 0x00000057UL
 		case PICO_TRIGGER_AND_EXTERNAL_CLOCK_CLASH : return "PICO_TRIGGER_AND_EXTERNAL_CLOCK_CLASH" ; // 0x00000058UL
@@ -532,7 +531,6 @@ const char* Picoscope::PicoscopeException::GetVerboseErrorMessage() const
 		case PICO_POWER_MANAGER                    : return "PICO_POWER_MANAGER";
 		case PICO_ANALOG_BOARD                     : return "The oscilloscope's analog board is not detected, or is not connected to the digital board";
 		case PICO_CONFIG_FAIL_AWG                  : return "Unable to configure the signal generator";
-		case PICO_INITIALIZE_FPGA                  : return "The FPGA cannot be initialized, so unit cannot be opened";
 		case PICO_EXTERNAL_FREQUENCY_INVALID       : return "The frequency for the external clock is not within +/-5 % of the stated value";
 		case PICO_CLOCK_CHANGE_ERROR               : return "The FPGA could not lock the clock signal";
 		case PICO_TRIGGER_AND_EXTERNAL_CLOCK_CLASH : return "You are trying to configure the AUX input as both a trigger and a reference clock";

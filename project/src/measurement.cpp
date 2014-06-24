@@ -455,8 +455,7 @@ void Measurement::RunBlock()
 
 	int i;
 	Timing t;
-	unsigned long max_length=0;
-	long max_length_l=0;
+	uint32_t max_length=0;
 
 	// we will have to start reading our data from beginning again
 	SetNextIndex(0);
@@ -484,7 +483,6 @@ void Measurement::RunBlock()
 			GetPicoscope()->SetStatus(ps4000SetNoOfCaptures(
 				GetHandle(),    // handle
 				GetNTraces())); // nCaptures
-			max_length = max_length_l;
 		} else {
 			FILE_LOG(logDEBUG2) << "ps6000SetNoOfCaptures(handle=" << GetHandle() << ", nCaptures=" << GetNTraces() << ")";
 			GetPicoscope()->SetStatus(ps6000SetNoOfCaptures(
@@ -596,12 +594,12 @@ unsigned long Measurement::GetNextData()
 
 	int i;
 	short overflow=0;
-	unsigned long length_of_trace_askedfor, length_of_trace_fetched;
+	uint32_t length_of_trace_askedfor, length_of_trace_fetched;
 	Timing t;
 
 	// it makes no sense to read any further: we are already at the end
 	if(GetNextIndex() >= GetLength()) {
-		std::cerr << "Stop fetching data from ociloscope." << std::endl;
+		std::cerr << "Stop fetching data from osciloscope." << std::endl;
 		return 0UL;
 	}
 
@@ -697,7 +695,7 @@ unsigned long Measurement::GetNextDataBulk()
 
 	unsigned long i, j, index;
 	short *overflow;
-	unsigned long traces_asked_for, length_of_trace_fetched;
+	uint32_t traces_asked_for, length_of_trace_fetched;
 	// unsigned long length_of_trace_askedfor, length_of_trace_fetched;
 	Timing t;
 
