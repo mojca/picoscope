@@ -1,7 +1,11 @@
 #ifndef __TIMING_H__
 #define __TIMING_H__
 
-#include <windows.h>
+#ifdef _WIN32
+#include "windows.h"
+#else
+#include <time.h>
+#endif
 
 // LARGE_INTEGER ticksPerSecond;
 // LARGE_INTEGER time1;
@@ -16,9 +20,14 @@ public:
 	void Stop();
 	double GetSecondsDouble();
 private:
+#ifdef _WIN32
 	LARGE_INTEGER time_start;
 	LARGE_INTEGER time_stop;
 	LARGE_INTEGER ticksPerSecond;
+#else
+	struct timespec time_start;
+	struct timespec time_stop;
+#endif
 
 	void GetTicksPerSecond();
 };
