@@ -9,7 +9,12 @@ set (PicoScope_VERSION_MINOR 4)
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 # PicoTech libraries (only needed on Windows; on linux these files are installed already)
 # include_directories ("${PROJECT_SOURCE_DIR}/lib")
-link_directories("${PROJECT_SOURCE_DIR}/lib")
+if (MINGW)
+    link_directories("${PROJECT_SOURCE_DIR}/lib")
+else()
+    # TODO: proper path
+    link_directories("/opt/picoscope/lib")
+endif (MINGW)
 
 add_executable(run_picoscope src/run_picoscope.cpp
                              src/args.cpp
@@ -17,7 +22,8 @@ add_executable(run_picoscope src/run_picoscope.cpp
                              src/measurement.cpp
                              src/picoscope.cpp
                              src/timing.cpp
-                             src/trigger.cpp)
+                             src/trigger.cpp
+                             src/linux_utils.cpp)
 
 add_executable(bin2dat util/bin2dat.cpp)
 # set_target_properties(bin2dat PROPERTIES OUTPUT_NAME "bin2dat${CMAKE_EXECUTABLE_SUFFIX}")

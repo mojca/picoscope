@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include "picoStatus.h"
+#include "ps4000Api.h"
+#include "ps6000Api.h"
 
 enum PICOSCOPE_STATE  {OPEN, CLOSED};
 
@@ -34,9 +36,7 @@ typedef enum picoscopeVoltage
 #define PICOSCOPE_HANDLE_FAIL_TO_OPEN -1
 #define PICOSCOPE_HANDLE_NO_UNIT_FOUND 0
 
-#define CALLBACK __stdcall
-
-void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter);
+void PREF4 CallBackBlock (short handle, PICO_STATUS status, void *pParameter);
 
 class Picoscope {
 private:

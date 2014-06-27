@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
-#include <conio.h>
 #include <stdio.h>
-#include "windows.h"
+
+#include "linux_utils.h"
 #include "picoscope.h"
 #include "log.h"
 
@@ -151,7 +151,7 @@ void Picoscope::SetStatus(PICO_STATUS status)
 }
 
 
-void CALLBACK CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
+void PREF4 CallBackBlock (short handle, PICO_STATUS status, void *pParameter)
 {
 	// flag to say done reading data
 	Picoscope::SetReady(true);
@@ -179,10 +179,10 @@ void Picoscope::MyFunction(unsigned long trace_length)
 	// 		throw PicoscopeException(return_status);
 	// 	}
 	// }
-	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)0, TRUE,  PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
-	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)1, FALSE, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
-	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)2, FALSE, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
-	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)3, FALSE, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)0, true,  PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)1, false, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)2, false, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
+	return_status = ps6000SetChannel(handle, (PS6000_CHANNEL)3, false, PS6000_DC_1M, PS6000_5V, 0, PS6000_BW_FULL);
 	if(return_status != PICO_OK) {
 		throw PicoscopeException(return_status);
 	}

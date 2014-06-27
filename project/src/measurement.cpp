@@ -1,12 +1,12 @@
 #include <vector>
 #include <iostream>
-#include <conio.h>
+#include <cstring>
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "windows.h"
 #include "math.h"
 
+#include "linux_utils.h"
 #include "picoscope.h"
 #include "measurement.h"
 #include "channel.h"
@@ -1056,7 +1056,7 @@ void Measurement::AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvo
 
 // TODO: get rid of dependency on PS6000_TIME_UNITS in declaration
 // implementation may change
-void Measurement::SetRate(long n_events, long long t1, PS6000_TIME_UNITS time_unit1, long long t2, PS6000_TIME_UNITS time_unit2)
+void Measurement::SetRate(long n_events, int64_t t1, PS6000_TIME_UNITS time_unit1, int64_t t2, PS6000_TIME_UNITS time_unit2)
 {
 	FILE_LOG(logDEBUG3) << "Measurement::SetRate (n_events=" << n_events << ", ...)";
 	if(n_events < 2) {

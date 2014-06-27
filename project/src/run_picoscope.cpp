@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include "windows.h"
 
+#include "linux_utils.h"
 #include "picoscope.h"
 #include "measurement.h"
 #include "channel.h"
@@ -17,7 +17,6 @@
 #include "ps6000Api.h"
 // #include "picoStatus.h"
 
-#include <conio.h>
 // #include <stdio.h>
 
 // #include <sys/types.h>
