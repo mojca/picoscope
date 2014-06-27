@@ -575,7 +575,7 @@ void Measurement::RunBlock()
 	// TODO: catch the _kbhit event!!!
 	// while (!Picoscope::IsReady() && !_kbhit()) {
 	while (!Picoscope::IsReady()) {
-		Sleep(2000);
+		Sleep(200);
 	}
 	t.Stop();
 	std::cerr << "OK (" << t.GetSecondsDouble() << "s)\n";
