@@ -278,6 +278,11 @@ int main(int argc, char** argv)
 	// catch any exceptions
 	} catch(const char* s) {
 		cerr << "Some exception has occurred:\n" << s << endl;
+	} catch (std::bad_alloc& ba) {
+		std::cerr << "Exception: bad_alloc: " << ba.what() << endl;
+	} catch (const std::exception &exc) {
+		// catch anything thrown within try block that derives from std::exception
+		std::cerr << "Exception: " << exc.what() << endl;
 	} catch(...) {
 		cerr << "Some exception has occurred" << endl;
 	}
