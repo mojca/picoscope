@@ -13,6 +13,8 @@
 // //	PS_MAX_TRIGGER_SOURCES
 // } PICO_CHANNEL;
 
+#include <stdint.h>
+
 #include "picoscope.h"
 #include "channel.h"
 #include "trigger.h"
@@ -97,7 +99,7 @@ public:
 	void AddSignalGeneratorSquare(unsigned long peak_to_peak_in_microvolts, float frequency);
 	void InitializeSignalGenerator();
 
-	void SetRate(long n_events, long long t1, PS6000_TIME_UNITS time_unit1, long long t2, PS6000_TIME_UNITS time_unit2);
+	void SetRate(long n_events, int64_t t1, PS6000_TIME_UNITS time_unit1, int64_t t2, PS6000_TIME_UNITS time_unit2);
 	double GetRatePerSecond();
 
 private:

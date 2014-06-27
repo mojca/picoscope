@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "windows.h"
 #include "math.h"
 
@@ -822,10 +823,10 @@ unsigned long Measurement::GetNextDataBulk()
 	// }
 
 	// getting timestamps
-	long long *timestamps;
+	int64_t *timestamps;
 	PS6000_TIME_UNITS *timeunits;
 
-	timestamps = new long long[traces_asked_for];
+	timestamps = new int64_t[traces_asked_for];
 	timeunits  = new PS6000_TIME_UNITS[traces_asked_for];
 
 	if(GetSeries() == PICO_4000) {
