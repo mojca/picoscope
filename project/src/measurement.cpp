@@ -535,8 +535,8 @@ void Measurement::RunBlock()
 		}
 	}
 
-	std::cerr << "\nPress a key to start fetching the data ...\n";
-	_getch();
+	//std::cerr << "\nPress a key to start fetching the data ...\n";
+	//_getch();
 
 	t.Start();
 	GetPicoscope()->SetReady(false);
